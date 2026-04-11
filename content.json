@@ -1,28 +1,28 @@
 {
   "music": [
-    { "file": "intro.mp3", "startScene": 0 },
-    { "file": "emotional.mp3", "startScene": 2 }
+    { "file": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", "startScene": 0 },
+    { "file": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3", "startScene": 2 }
   ],
   "scenes": [
     {
       "title": "Childhood",
       "text": "Before the world knew her...",
-      "image": "1.jpg"
+      "image": "https://picsum.photos/1920/1080?random=1"
     },
     {
       "title": "Growing Up",
-      "text": "She became something rare.",
-      "image": "2.jpg"
+      "text": "She became someone rare.",
+      "image": "https://picsum.photos/1920/1080?random=2"
     },
     {
       "title": "Us",
       "text": "And then our paths crossed.",
-      "image": "3.jpg"
+      "image": "https://picsum.photos/1920/1080?random=3"
     },
     {
       "title": "Today",
       "text": "Happy Birthday.",
-      "image": "4.jpg"
+      "image": "https://picsum.photos/1920/1080?random=4"
     }
   ]
 }
