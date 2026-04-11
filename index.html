@@ -121,6 +121,15 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
 #ec.on .rbtn{animation:fadeIn .8s 3.2s forwards;}
 .rbtn:hover{border-color:var(--amber);color:var(--amber);}
 
+/* LOADING */
+#loader{position:fixed;inset:0;z-index:6000;background:var(--ink);display:flex;align-items:center;justify-content:center;transition:opacity .8s ease,visibility .8s ease;}
+#loader.gone{opacity:0;visibility:hidden;pointer-events:none;}
+.loader-dot{width:5px;height:5px;border-radius:50%;background:var(--amber);margin:0 4px;animation:ldot 1.2s ease-in-out infinite;}
+.loader-dot:nth-child(1){animation-delay:0s}
+.loader-dot:nth-child(2){animation-delay:.2s}
+.loader-dot:nth-child(3){animation-delay:.4s}
+@keyframes ldot{0%,80%,100%{transform:scale(0.4);opacity:.3}40%{transform:scale(1);opacity:1}}
+
 /* KEYFRAMES */
 @keyframes riseIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
@@ -136,15 +145,22 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
 </head>
 <body>
 
+<!-- LOADER (shows while data loads) -->
+<div id="loader">
+  <div class="loader-dot"></div>
+  <div class="loader-dot"></div>
+  <div class="loader-dot"></div>
+</div>
+
 <div id="grain"></div>
 <div id="vig"></div>
 
 <!-- INTRO -->
 <div id="intro">
-  <span class="i-pre">A story in music &amp; light</span>
+  <span class="i-pre" id="intro-pre">A story in music &amp; light</span>
   <h1 class="i-title">For <em>Her</em></h1>
   <div class="i-rule"></div>
-  <p class="i-sub">Kasoor &nbsp;·&nbsp; Baarishein &nbsp;·&nbsp; and more</p>
+  <p class="i-sub" id="intro-sub">Kasoor &nbsp;·&nbsp; Baarishein &nbsp;·&nbsp; and more</p>
   <button class="pbtn" id="playBtn"><span class="ptri"></span>Play</button>
 </div>
 
@@ -168,11 +184,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
 
 <!-- END CARD -->
 <div id="ec">
-  <span class="e-pre">With everything</span>
-  <p class="e-msg">Happy Birthday.</p>
-  <p class="e-sub">Always yours to keep.</p>
+  <span class="e-pre" id="ec-pre">With everything</span>
+  <p class="e-msg" id="ec-msg">Happy Birthday.</p>
+  <p class="e-sub" id="ec-sub">Always yours to keep.</p>
   <div class="e-rule"></div>
-  <p class="e-note">Kasoor · Baarishein · Tum Hi Ho · Tera Yaar Hoon Main · Khairiyat</p>
+  <p class="e-note" id="ec-note">Kasoor · Baarishein · Tum Hi Ho · Tera Yaar Hoon Main · Khairiyat</p>
   <button class="rbtn" id="replayBtn">Watch Again</button>
 </div>
 
@@ -181,9 +197,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
 
 <script>
 /* ═══════════════════════════════════════════════
-   SONGS & SLIDES DATA
+   DEFAULT DATA (fallback if nothing in storage/json)
 ═══════════════════════════════════════════════ */
-const SONGS = [
+const DEFAULT_SONGS = [
   { title:"Kasoor — Prateek Kuhad",         ytId:"N3vQBQ3XPCY", start:30 },
   { title:"Baarishein — Atif Aslam",         ytId:"ixrSQoJ57WM", start:15 },
   { title:"Tum Hi Ho — Arijit Singh",        ytId:"Umqb9KENgmk", start:10 },
@@ -191,74 +207,194 @@ const SONGS = [
   { title:"Khairiyat — Arijit Singh",        ytId:"dBgtCsrR4xU", start:18 }
 ];
 
-const SLIDES = [
-  { img:"https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=1600&q=85", tint:"rgba(40,20,8,0.32)",   kb:"kb-zi", pos:"pos-bc", song:0, dur:9000,  lines:[{text:"There are people you meet",cls:"d1"},{text:"and the world quietly shifts.",cls:"d2 gold"}] },
-  { img:"https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=1600&q=85", tint:"rgba(30,12,5,0.3)",    kb:"kb-pr", pos:"pos-bl", song:0, dur:9000,  lines:[{text:"She was one of them.",cls:"d1 big gold"}] },
-  { img:"https://images.unsplash.com/photo-1531306728370-e2ebd9d7bb99?w=1600&q=85", tint:"rgba(20,10,20,0.28)",  kb:"kb-zo", pos:"pos-mc", song:0, dur:10000, lines:[{text:"Kuch toh tha,",cls:"d1 gold"},{text:"jo aaँkhon ne bola,",cls:"d2"},{text:"jo lafzon ne nahi.",cls:"d3 rose"}] },
-  { img:"https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=1600&q=85", tint:"rgba(10,5,25,0.3)",    kb:"kb-pl", pos:"pos-tr", song:0, dur:9000,  lines:[{text:"The kind of person",cls:"d1 sm"},{text:"you remember",cls:"d2"},{text:"on ordinary days.",cls:"d3 rose"}] },
-  { img:"https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=1600&q=85", tint:"rgba(30,10,5,0.28)",   kb:"kb-du", pos:"pos-bc", song:0, dur:9000,  lines:[{text:"Kasoor tera nahi.",cls:"d1 big gold"},{text:"Aur mera bhi nahi.",cls:"d2"}] },
-  { img:"https://images.unsplash.com/photo-1519692933481-e162a57d6721?w=1600&q=85", tint:"rgba(5,15,32,0.38)",   kb:"kb-zi", pos:"pos-bc", song:1, dur:9500,  lines:[{text:"Baarish jab bhi ho —",cls:"d1 blue"},{text:"teri yaad aati hai.",cls:"d2"}] },
-  { img:"https://images.unsplash.com/photo-1534274988757-a28bf1a57c17?w=1600&q=85", tint:"rgba(5,18,35,0.35)",   kb:"kb-du", pos:"pos-ml", song:1, dur:9000,  lines:[{text:"Some feelings",cls:"d1 caps"},{text:"don't have names.",cls:"d2 big"},{text:"They just live.",cls:"d3 blue"}] },
-  { img:"https://images.unsplash.com/photo-1473621038790-b778b4750efe?w=1600&q=85", tint:"rgba(8,12,30,0.38)",   kb:"kb-pr", pos:"pos-tc", song:1, dur:9500,  lines:[{text:"Jo dil mein tha —",cls:"d1"},{text:"woh kabhi keh nahi paaye.",cls:"d2 rose"}] },
-  { img:"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1600&q=85", tint:"rgba(5,10,28,0.35)",   kb:"kb-zo", pos:"pos-bc", song:1, dur:9000,  lines:[{text:"And still —",cls:"d1 sm"},{text:"she stayed.",cls:"d2 big blue"},{text:"Like rain that never felt like sadness.",cls:"d3"}] },
-  { img:"https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=85", tint:"rgba(5,8,25,0.32)",    kb:"kb-pl", pos:"pos-br", song:1, dur:9000,  lines:[{text:"Baarishein thi,",cls:"d1 blue"},{text:"aur tum bhi.",cls:"d2 gold"}] },
-  { img:"https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1600&q=85", tint:"rgba(30,8,5,0.28)",    kb:"kb-zi", pos:"pos-mc", song:2, dur:10000, lines:[{text:"Tum hi ho.",cls:"d1 big gold"}] },
-  { img:"https://images.unsplash.com/photo-1454496522488-7a8e488e8606?w=1600&q=85", tint:"rgba(22,8,5,0.28)",    kb:"kb-pl", pos:"pos-bl", song:2, dur:9000,  lines:[{text:"Har ek lamhe mein,",cls:"d1"},{text:"sirf tum.",cls:"d2 big gold"}] },
-  { img:"https://images.unsplash.com/photo-1474631245212-32dc3c8310c6?w=1600&q=85", tint:"rgba(18,6,4,0.3)",     kb:"kb-du", pos:"pos-tc", song:2, dur:9500,  lines:[{text:"There is something rare",cls:"d1 sm"},{text:"about a person who makes",cls:"d2"},{text:"the world feel like home.",cls:"d3 gold"}] },
-  { img:"https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=1600&q=85", tint:"rgba(25,8,4,0.28)",    kb:"kb-pr", pos:"pos-bc", song:2, dur:9000,  lines:[{text:"Ab tere bina kya nahi —",cls:"d1 rose"},{text:"yeh dil jaanta hai.",cls:"d2"}] },
-  { img:"https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1600&q=85", tint:"rgba(28,15,0,0.25)",   kb:"kb-zo", pos:"pos-tc", song:3, dur:9000,  lines:[{text:"Tera yaar hoon main.",cls:"d1 big gold"},{text:"Sada ke liye.",cls:"d2"}] },
-  { img:"https://images.unsplash.com/photo-1524117074681-31bd4de22ad3?w=1600&q=85", tint:"rgba(30,18,0,0.26)",   kb:"kb-pr", pos:"pos-bl", song:3, dur:9000,  lines:[{text:"The laughs that made",cls:"d1"},{text:"everything okay.",cls:"d2 gold"}] },
-  { img:"https://images.unsplash.com/photo-1504196606672-aef5c9cefc92?w=1600&q=85", tint:"rgba(22,12,0,0.26)",   kb:"kb-pl", pos:"pos-mc", song:3, dur:9500,  lines:[{text:"Woh waqt,",cls:"d1"},{text:"jo kabhi lautega nahi —",cls:"d2"},{text:"par dil mein hai.",cls:"d3 gold"}] },
-  { img:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1600&q=85", tint:"rgba(20,10,0,0.28)",   kb:"kb-zi", pos:"pos-tr", song:3, dur:9000,  lines:[{text:"Saath nibhaana,",cls:"d1 gold"},{text:"yeh waada mera.",cls:"d2"}] },
-  { img:"https://images.unsplash.com/photo-1500622944204-b135684e99fd?w=1600&q=85", tint:"rgba(5,5,22,0.33)",    kb:"kb-du", pos:"pos-bc", song:4, dur:9500,  lines:[{text:"Khairiyat pooch,",cls:"d1 blue"},{text:"kabhi toh khairiyat pooch.",cls:"d2"}] },
-  { img:"https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1600&q=85", tint:"rgba(5,5,22,0.32)",    kb:"kb-pl", pos:"pos-ml", song:4, dur:9500,  lines:[{text:"Distance changes nothing",cls:"d1"},{text:"that was ever real.",cls:"d2 rose"}] },
-  { img:"https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=1600&q=85", tint:"rgba(8,5,20,0.35)",     kb:"kb-zi", pos:"pos-bc", song:4, dur:10000, lines:[{text:"And today —",cls:"d1 caps"},{text:"on your birthday,",cls:"d2 big gold"},{text:"I just want you to feel it all.",cls:"d3"}] },
-  { img:"https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1600&q=85", tint:"rgba(5,0,18,0.35)",    kb:"kb-zo", pos:"pos-mc", song:4, dur:13000, lines:[{text:"Happy Birthday.",cls:"d1 big gold"},{text:"You deserve every beautiful thing.",cls:"d2"},{text:"Every single one.",cls:"d3 rose"}] }
+const DEFAULT_SLIDES = [
+  { img:"https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=1600&q=85", tint:"rgba(40,20,8,0.32)",  kb:"kb-zi", pos:"pos-bc", song:0, dur:9000,  lines:[{text:"There are people you meet",cls:"d1"},{text:"and the world quietly shifts.",cls:"d2 gold"}] },
+  { img:"https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=1600&q=85", tint:"rgba(30,12,5,0.3)",   kb:"kb-pr", pos:"pos-bl", song:0, dur:9000,  lines:[{text:"She was one of them.",cls:"d1 big gold"}] },
+  { img:"https://images.unsplash.com/photo-1531306728370-e2ebd9d7bb99?w=1600&q=85", tint:"rgba(20,10,20,0.28)", kb:"kb-zo", pos:"pos-mc", song:0, dur:10000, lines:[{text:"Kuch toh tha,",cls:"d1 gold"},{text:"jo aaँkhon ne bola,",cls:"d2"},{text:"jo lafzon ne nahi.",cls:"d3 rose"}] },
+  { img:"https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=1600&q=85", tint:"rgba(10,5,25,0.3)",   kb:"kb-pl", pos:"pos-tr", song:0, dur:9000,  lines:[{text:"The kind of person",cls:"d1 sm"},{text:"you remember",cls:"d2"},{text:"on ordinary days.",cls:"d3 rose"}] },
+  { img:"https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=1600&q=85", tint:"rgba(30,10,5,0.28)",  kb:"kb-du", pos:"pos-bc", song:0, dur:9000,  lines:[{text:"Kasoor tera nahi.",cls:"d1 big gold"},{text:"Aur mera bhi nahi.",cls:"d2"}] },
+  { img:"https://images.unsplash.com/photo-1519692933481-e162a57d6721?w=1600&q=85", tint:"rgba(5,15,32,0.38)",  kb:"kb-zi", pos:"pos-bc", song:1, dur:9500,  lines:[{text:"Baarish jab bhi ho —",cls:"d1 blue"},{text:"teri yaad aati hai.",cls:"d2"}] },
+  { img:"https://images.unsplash.com/photo-1534274988757-a28bf1a57c17?w=1600&q=85", tint:"rgba(5,18,35,0.35)",  kb:"kb-du", pos:"pos-ml", song:1, dur:9000,  lines:[{text:"Some feelings",cls:"d1 caps"},{text:"don't have names.",cls:"d2 big"},{text:"They just live.",cls:"d3 blue"}] },
+  { img:"https://images.unsplash.com/photo-1473621038790-b778b4750efe?w=1600&q=85", tint:"rgba(8,12,30,0.38)",  kb:"kb-pr", pos:"pos-tc", song:1, dur:9500,  lines:[{text:"Jo dil mein tha —",cls:"d1"},{text:"woh kabhi keh nahi paaye.",cls:"d2 rose"}] },
+  { img:"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1600&q=85", tint:"rgba(5,10,28,0.35)",  kb:"kb-zo", pos:"pos-bc", song:1, dur:9000,  lines:[{text:"And still —",cls:"d1 sm"},{text:"she stayed.",cls:"d2 big blue"},{text:"Like rain that never felt like sadness.",cls:"d3"}] },
+  { img:"https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=85", tint:"rgba(5,8,25,0.32)",   kb:"kb-pl", pos:"pos-br", song:1, dur:9000,  lines:[{text:"Baarishein thi,",cls:"d1 blue"},{text:"aur tum bhi.",cls:"d2 gold"}] },
+  { img:"https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1600&q=85", tint:"rgba(30,8,5,0.28)",   kb:"kb-zi", pos:"pos-mc", song:2, dur:10000, lines:[{text:"Tum hi ho.",cls:"d1 big gold"}] },
+  { img:"https://images.unsplash.com/photo-1454496522488-7a8e488e8606?w=1600&q=85", tint:"rgba(22,8,5,0.28)",   kb:"kb-pl", pos:"pos-bl", song:2, dur:9000,  lines:[{text:"Har ek lamhe mein,",cls:"d1"},{text:"sirf tum.",cls:"d2 big gold"}] },
+  { img:"https://images.unsplash.com/photo-1474631245212-32dc3c8310c6?w=1600&q=85", tint:"rgba(18,6,4,0.3)",    kb:"kb-du", pos:"pos-tc", song:2, dur:9500,  lines:[{text:"There is something rare",cls:"d1 sm"},{text:"about a person who makes",cls:"d2"},{text:"the world feel like home.",cls:"d3 gold"}] },
+  { img:"https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=1600&q=85", tint:"rgba(25,8,4,0.28)",   kb:"kb-pr", pos:"pos-bc", song:2, dur:9000,  lines:[{text:"Ab tere bina kya nahi —",cls:"d1 rose"},{text:"yeh dil jaanta hai.",cls:"d2"}] },
+  { img:"https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1600&q=85", tint:"rgba(28,15,0,0.25)",  kb:"kb-zo", pos:"pos-tc", song:3, dur:9000,  lines:[{text:"Tera yaar hoon main.",cls:"d1 big gold"},{text:"Sada ke liye.",cls:"d2"}] },
+  { img:"https://images.unsplash.com/photo-1524117074681-31bd4de22ad3?w=1600&q=85", tint:"rgba(30,18,0,0.26)",  kb:"kb-pr", pos:"pos-bl", song:3, dur:9000,  lines:[{text:"The laughs that made",cls:"d1"},{text:"everything okay.",cls:"d2 gold"}] },
+  { img:"https://images.unsplash.com/photo-1504196606672-aef5c9cefc92?w=1600&q=85", tint:"rgba(22,12,0,0.26)",  kb:"kb-pl", pos:"pos-mc", song:3, dur:9500,  lines:[{text:"Woh waqt,",cls:"d1"},{text:"jo kabhi lautega nahi —",cls:"d2"},{text:"par dil mein hai.",cls:"d3 gold"}] },
+  { img:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1600&q=85", tint:"rgba(20,10,0,0.28)",  kb:"kb-zi", pos:"pos-tr", song:3, dur:9000,  lines:[{text:"Saath nibhaana,",cls:"d1 gold"},{text:"yeh waada mera.",cls:"d2"}] },
+  { img:"https://images.unsplash.com/photo-1500622944204-b135684e99fd?w=1600&q=85", tint:"rgba(5,5,22,0.33)",   kb:"kb-du", pos:"pos-bc", song:4, dur:9500,  lines:[{text:"Khairiyat pooch,",cls:"d1 blue"},{text:"kabhi toh khairiyat pooch.",cls:"d2"}] },
+  { img:"https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1600&q=85", tint:"rgba(5,5,22,0.32)",   kb:"kb-pl", pos:"pos-ml", song:4, dur:9500,  lines:[{text:"Distance changes nothing",cls:"d1"},{text:"that was ever real.",cls:"d2 rose"}] },
+  { img:"https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=1600&q=85", tint:"rgba(8,5,20,0.35)",    kb:"kb-zi", pos:"pos-bc", song:4, dur:10000, lines:[{text:"And today —",cls:"d1 caps"},{text:"on your birthday,",cls:"d2 big gold"},{text:"I just want you to feel it all.",cls:"d3"}] },
+  { img:"https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1600&q=85", tint:"rgba(5,0,18,0.35)",   kb:"kb-zo", pos:"pos-mc", song:4, dur:13000, lines:[{text:"Happy Birthday.",cls:"d1 big gold"},{text:"You deserve every beautiful thing.",cls:"d2"},{text:"Every single one.",cls:"d3 rose"}] }
 ];
+
+const DEFAULT_END = {
+  pre:"With everything", title:"Happy Birthday.",
+  sub:"Always yours to keep.",
+  note:"Kasoor · Baarishein · Tum Hi Ho · Tera Yaar Hoon Main · Khairiyat"
+};
 
 /* ═══════════════════════════════════════════════
    ENGINE STATE
 ═══════════════════════════════════════════════ */
+let SONGS  = [];
+let SLIDES = [];
 let cur       = -1;
 let stTimer   = null;
 let running   = false;
 let activeSng = -1;
-let pendingSng= -1;        // song we WANT to play
-let ytPlrs    = {};        // index → YT.Player
-let ytReady   = {};        // index → true when onReady fired
-let ytOk      = false;     // IFrame API loaded
+let pendingSng= -1;
+let ytPlrs    = {};
+let ytReady   = {};
+let ytOk      = false;
 
-const $stage = document.getElementById('stage');
-const $pb    = document.getElementById('pb');
-const $pw    = document.getElementById('pw');
-const $ctr   = document.getElementById('ctr');
-const $mbars = document.getElementById('mbars');
-const $slbl  = document.getElementById('slbl');
-const $intro = document.getElementById('intro');
-const $ec    = document.getElementById('ec');
-const $ytc   = document.getElementById('ytc');
+/* DOM refs */
+const $stage  = document.getElementById('stage');
+const $pb     = document.getElementById('pb');
+const $pw     = document.getElementById('pw');
+const $ctr    = document.getElementById('ctr');
+const $mbars  = document.getElementById('mbars');
+const $slbl   = document.getElementById('slbl');
+const $intro  = document.getElementById('intro');
+const $ec     = document.getElementById('ec');
+const $ytc    = document.getElementById('ytc');
+const $loader = document.getElementById('loader');
 
 /* ═══════════════════════════════════════════════
-   BUILD SLIDES
+   LOAD DATA
+   Priority: 1) localStorage (admin edits)
+             2) content.json (file)
+             3) DEFAULT hardcoded
+═══════════════════════════════════════════════ */
+async function loadData() {
+  let data = null;
+
+  /* 1 — Check localStorage first (admin saves here) */
+  try {
+    const saved = localStorage.getItem('forHerAdmin');
+    if (saved) {
+      data = JSON.parse(saved);
+      console.log('[ForHer] Loaded from localStorage (admin data)');
+    }
+  } catch(e) {
+    console.warn('[ForHer] localStorage parse failed', e);
+  }
+
+  /* 2 — Try content.json if no localStorage data */
+  if (!data) {
+    try {
+      const res = await fetch('content.json?' + Date.now()); // cache-bust
+      if (res.ok) {
+        data = await res.json();
+        console.log('[ForHer] Loaded from content.json');
+      }
+    } catch(e) {
+      console.warn('[ForHer] content.json fetch failed', e);
+    }
+  }
+
+  /* 3 — Fallback to defaults */
+  if (!data) {
+    data = { songs: DEFAULT_SONGS, slides: DEFAULT_SLIDES, endCard: DEFAULT_END };
+    console.log('[ForHer] Using default data');
+  }
+
+  /* ── Apply data ── */
+  SONGS  = (data.songs  && data.songs.length)  ? data.songs  : DEFAULT_SONGS;
+  SLIDES = (data.slides && data.slides.length) ? normaliseSlides(data.slides) : DEFAULT_SLIDES;
+
+  /* Apply end card text */
+  const ec = data.endCard || DEFAULT_END;
+  setTxt('ec-pre',  ec.pre   || DEFAULT_END.pre);
+  setTxt('ec-msg',  ec.title || DEFAULT_END.title);
+  setTxt('ec-sub',  ec.sub   || DEFAULT_END.sub);
+  setTxt('ec-note', ec.note  || DEFAULT_END.note);
+
+  /* Update intro subtitle from song titles */
+  const songNames = SONGS.map(s => s.title.split('—')[0].trim()).join(' · ');
+  setTxt('intro-sub', songNames);
+
+  return data;
+}
+
+/* Normalise slides from admin format → engine format */
+function normaliseSlides(raw) {
+  const kbMap = {
+    'zoom-in'  : 'kb-zi',
+    'zoom-out' : 'kb-zo',
+    'pan-right': 'kb-pr',
+    'pan-left' : 'kb-pl',
+    'drift-up' : 'kb-du'
+  };
+
+  return raw.map(s => {
+    /* Image: prefer 'img' field (admin uses this), fallback 'image' */
+    const imgSrc = s.img || s.image || '';
+
+    /* Ken Burns: convert string → class */
+    const kb = kbMap[s.kenBurns] || s.kb || 'kb-zi';
+
+    /* Lines: normalise from admin format {text,color,size,style,delay}
+              OR from original format {text, cls} */
+    const lines = (s.lines || []).map(ln => {
+      if (ln.cls !== undefined) return ln; // already in engine format
+
+      /* Build cls string from admin fields */
+      const parts = [];
+      if (ln.delay) parts.push(`d${ln.delay}`);
+      if (ln.color) parts.push(ln.color);       // gold / rose / blue
+      if (ln.size)  parts.push(ln.size);         // big / sm
+      if (ln.style) parts.push(ln.style);        // caps / sm
+      return { text: ln.text || '', cls: parts.join(' ') };
+    });
+
+    return {
+      img   : imgSrc,
+      tint  : s.tint || s.overlay || 'rgba(0,0,0,0.3)',
+      kb    : kb,
+      pos   : s.pos || 'pos-bc',
+      song  : typeof s.song === 'number' ? s.song : 0,
+      dur   : s.dur || (s.duration ? s.duration * 1000 : 9000),
+      lines : lines
+    };
+  });
+}
+
+function setTxt(id, txt) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = txt;
+}
+
+/* ═══════════════════════════════════════════════
+   BUILD SLIDES IN DOM
 ═══════════════════════════════════════════════ */
 function buildSlides() {
+  $stage.innerHTML = '';
   SLIDES.forEach((s, i) => {
     const d = document.createElement('div');
     d.className = 'slide';
     d.id = `sl-${i}`;
+
+    /* Handle both data-URL uploads and http URLs */
+    const imgSrc = s.img || '';
+
     d.innerHTML = `
-      <div class="sbg ${s.kb}" style="background-image:url('${s.img}')"></div>
+      <div class="sbg ${s.kb}" style="background-image:url('${cssEsc(imgSrc)}')"></div>
       <div class="sovl"></div>
-      <div class="stint" style="background:${s.tint}"></div>
+      <div class="stint" style="background:${cssEsc(s.tint)}"></div>
       <div class="lw ${s.pos}">
-        ${s.lines.map(l => `<span class="ll ${l.cls||''}">${l.text}</span>`).join('')}
+        ${(s.lines||[]).map(l=>`<span class="ll ${l.cls||''}">${escHtml(l.text)}</span>`).join('')}
       </div>`;
     $stage.appendChild(d);
   });
 }
 
 /* ═══════════════════════════════════════════════
-   YOUTUBE — LOAD API
+   YOUTUBE
 ═══════════════════════════════════════════════ */
 function loadYT() {
   const s = document.createElement('script');
@@ -266,7 +402,6 @@ function loadYT() {
   document.head.appendChild(s);
 }
 
-/* Called by YouTube when API is ready */
 window.onYouTubeIframeAPIReady = function () {
   ytOk = true;
   SONGS.forEach((song, i) => {
@@ -275,21 +410,14 @@ window.onYouTubeIframeAPIReady = function () {
     $ytc.appendChild(el);
 
     ytPlrs[i] = new YT.Player(`yt-${i}`, {
-      height : '1',
-      width  : '1',
+      height:'1', width:'1',
       videoId: song.ytId,
-      playerVars: {
-        start         : song.start,
-        autoplay      : 0,
-        controls      : 0,
-        disablekb     : 1,
-        fs            : 0,
-        modestbranding: 1,
-        rel           : 0,
-        enablejsapi   : 1,
-        origin        : window.location.origin || '*'
+      playerVars:{
+        start:song.start||0, autoplay:0, controls:0,
+        disablekb:1, fs:0, modestbranding:1, rel:0,
+        enablejsapi:1, origin: window.location.origin||'*'
       },
-      events: {
+      events:{
         onReady      : e => onPlayerReady(e, i),
         onStateChange: e => onPlayerState(e, i)
       }
@@ -297,58 +425,42 @@ window.onYouTubeIframeAPIReady = function () {
   });
 };
 
-/* Player ready — mute, then check if we were waiting for it */
 function onPlayerReady(event, idx) {
   ytReady[idx] = true;
   event.target.setVolume(0);
   event.target.mute();
-
-  // If this is the song we need to play right now, play it
-  if (pendingSng === idx) {
-    playSong(idx);
-  }
+  if (pendingSng === idx) playSong(idx);
 }
 
-/* Re-seek if video ends (loop from start point) */
 function onPlayerState(event, idx) {
   if (event.data === YT.PlayerState.ENDED) {
     try {
-      event.target.seekTo(SONGS[idx].start, true);
+      event.target.seekTo(SONGS[idx].start||0, true);
       event.target.playVideo();
     } catch {}
   }
 }
 
-/* ═══════════════════════════════════════════════
-   PLAY A SONG — actual play logic
-═══════════════════════════════════════════════ */
 function playSong(idx) {
   if (!ytOk || !ytReady[idx] || !ytPlrs[idx]) return;
   try {
     const p = ytPlrs[idx];
     p.unMute();
-    p.seekTo(SONGS[idx].start, true);
+    p.seekTo(SONGS[idx].start||0, true);
     p.playVideo();
-    fadeVol(p, 0, 85, 2000);   // fade in from 0 → 85 over 2 sec
-  } catch (e) {
-    console.warn('playSong error', e);
-  }
+    fadeVol(p, 0, 85, 2000);
+  } catch(e) { console.warn('playSong', e); }
 }
 
-/* ═══════════════════════════════════════════════
-   SWITCH SONG (called when slide changes song)
-═══════════════════════════════════════════════ */
 function switchSong(idx) {
   if (idx === activeSng) return;
 
-  // Update label
   $slbl.classList.remove('on');
   setTimeout(() => {
     $slbl.textContent = SONGS[idx] ? SONGS[idx].title : '';
     $slbl.classList.add('on');
   }, 350);
 
-  // Fade out & pause ALL other songs
   SONGS.forEach((_, i) => {
     if (i !== idx && ytPlrs[i] && ytReady[i]) {
       fadeVol(ytPlrs[i], null, 0, 1200, () => {
@@ -358,39 +470,25 @@ function switchSong(idx) {
   });
 
   activeSng  = idx;
-  pendingSng = idx;   // remember in case player isn't ready yet
-
-  if (ytOk && ytReady[idx]) {
-    playSong(idx);
-  }
-  // else: onPlayerReady will call playSong when it fires
+  pendingSng = idx;
+  if (ytOk && ytReady[idx]) playSong(idx);
 }
 
-/* ═══════════════════════════════════════════════
-   VOLUME FADE
-   fadeVol(player, fromVol|null, toVol, durationMs, cb)
-   Pass null for fromVol to read current volume
-═══════════════════════════════════════════════ */
 function fadeVol(player, from, to, duration, cb) {
   let current = from;
   if (current === null) {
     try { current = player.getVolume(); } catch { current = to > 0 ? 0 : 85; }
   }
-
   const steps    = 30;
   const interval = duration / steps;
   const delta    = (to - current) / steps;
   let   step     = 0;
-
-  // Unmute so volume control works
   try { player.unMute(); } catch {}
-
   const iv = setInterval(() => {
     step++;
     current += delta;
     const vol = Math.round(Math.max(0, Math.min(100, current)));
     try { player.setVolume(vol); } catch {}
-
     if (step >= steps) {
       clearInterval(iv);
       try { player.setVolume(to); } catch {}
@@ -400,7 +498,7 @@ function fadeVol(player, from, to, duration, cb) {
 }
 
 /* ═══════════════════════════════════════════════
-   SLIDE NAVIGATION
+   SLIDE ENGINE
 ═══════════════════════════════════════════════ */
 function goSlide(idx) {
   if (idx >= SLIDES.length) { showEnd(); return; }
@@ -408,60 +506,48 @@ function goSlide(idx) {
   const prev = cur;
   cur = idx;
 
-  // Deactivate previous
   if (prev >= 0) {
     const pe = document.getElementById(`sl-${prev}`);
     if (pe) {
       pe.querySelectorAll('.ll').forEach(l => {
-        l.classList.remove('in');
-        l.classList.add('out');
+        l.classList.remove('in'); l.classList.add('out');
       });
       setTimeout(() => pe.classList.remove('active'), 1500);
     }
   }
 
-  // Activate current — reset Ken Burns by replacing bg node
   const el = document.getElementById(`sl-${idx}`);
   const ob = el.querySelector('.sbg');
   const nb = document.createElement('div');
-  nb.className   = ob.className;
+  nb.className     = ob.className;
   nb.style.cssText = ob.style.cssText;
   ob.parentNode.replaceChild(nb, ob);
 
   el.classList.add('active');
 
-  // Animate lyrics in
   const lls = el.querySelectorAll('.ll');
   lls.forEach(l => l.classList.remove('out'));
   requestAnimationFrame(() =>
-    requestAnimationFrame(() =>
-      lls.forEach(l => l.classList.add('in'))
-    )
+    requestAnimationFrame(() => lls.forEach(l => l.classList.add('in')))
   );
 
-  // Progress bar
   const dur = SLIDES[idx].dur;
   $pb.style.transition = 'none';
   $pb.style.width = '0%';
   requestAnimationFrame(() =>
     requestAnimationFrame(() => {
-      $pb.style.transition = `width ${dur / 1000}s linear`;
+      $pb.style.transition = `width ${dur/1000}s linear`;
       $pb.style.width = '100%';
     })
   );
 
-  // Counter
-  $ctr.textContent = `${String(idx + 1).padStart(2,'0')} / ${String(SLIDES.length).padStart(2,'0')}`;
+  $ctr.textContent = `${String(idx+1).padStart(2,'0')} / ${String(SLIDES.length).padStart(2,'0')}`;
 
-  // Song switch
-  const sng = SLIDES[idx].song;
-  if (sng !== activeSng) {
-    switchSong(sng);
-  }
+  const sng = SLIDES[idx].song || 0;
+  if (sng !== activeSng) switchSong(sng);
 
-  // Schedule next slide
   clearTimeout(stTimer);
-  stTimer = setTimeout(() => goSlide(cur + 1), dur);
+  stTimer = setTimeout(() => goSlide(cur+1), dur);
 }
 
 /* ═══════════════════════════════════════════════
@@ -469,7 +555,7 @@ function goSlide(idx) {
 ═══════════════════════════════════════════════ */
 function start() {
   $intro.classList.add('gone');
-  [$pw, $ctr, $mbars, $slbl].forEach(e => e.classList.add('on'));
+  [$pw,$ctr,$mbars,$slbl].forEach(e => e.classList.add('on'));
   running = true;
   setTimeout(() => goSlide(0), 1600);
 }
@@ -477,8 +563,7 @@ function start() {
 function showEnd() {
   running = false;
   $pb.style.width = '100%';
-  // Fade out all songs
-  SONGS.forEach((_, i) => {
+  SONGS.forEach((_,i) => {
     if (ytPlrs[i] && ytReady[i]) {
       fadeVol(ytPlrs[i], null, 0, 2000, () => {
         try { ytPlrs[i].pauseVideo(); } catch {}
@@ -490,43 +575,76 @@ function showEnd() {
 
 function replay() {
   $ec.classList.remove('on');
-  cur = -1;
-  activeSng = -1;
-  pendingSng = -1;
-
+  cur = -1; activeSng = -1; pendingSng = -1;
   document.querySelectorAll('.slide').forEach(s => {
     s.classList.remove('active');
     s.querySelectorAll('.ll').forEach(l => l.classList.remove('in','out'));
   });
-
   running = true;
   setTimeout(() => goSlide(0), 800);
 }
 
 /* ═══════════════════════════════════════════════
-   KEYBOARD NAV
+   KEYBOARD
 ═══════════════════════════════════════════════ */
 document.addEventListener('keydown', e => {
   if (!running) return;
-  if (e.key === 'ArrowRight' || e.key === ' ') {
-    e.preventDefault();
-    clearTimeout(stTimer);
-    goSlide(cur + 1);
+  if (e.key==='ArrowRight'||e.key===' ') {
+    e.preventDefault(); clearTimeout(stTimer); goSlide(cur+1);
   }
-  if (e.key === 'ArrowLeft') {
-    e.preventDefault();
-    clearTimeout(stTimer);
-    goSlide(Math.max(0, cur - 1));
+  if (e.key==='ArrowLeft') {
+    e.preventDefault(); clearTimeout(stTimer); goSlide(Math.max(0,cur-1));
+  }
+});
+
+/* ═══════════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════════ */
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+/* For CSS url() — only escape quotes and backslashes */
+function cssEsc(str) {
+  return String(str).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+}
+
+/* ═══════════════════════════════════════════════
+   STORAGE CHANGE LISTENER
+   So if admin is open in another tab, main page
+   updates immediately without refresh
+═══════════════════════════════════════════════ */
+window.addEventListener('storage', async e => {
+  if (e.key === 'forHerAdmin') {
+    console.log('[ForHer] Admin data changed — reloading slides');
+    await loadData();
+    buildSlides();
+    /* Reset state */
+    cur = -1; activeSng = -1; pendingSng = -1;
+    running = false;
+    $ec.classList.remove('on');
+    $intro.classList.remove('gone');
+    [$pw,$ctr,$mbars,$slbl].forEach(el => el.classList.remove('on'));
   }
 });
 
 /* ═══════════════════════════════════════════════
    INIT
 ═══════════════════════════════════════════════ */
-document.getElementById('playBtn').addEventListener('click', start);
-document.getElementById('replayBtn').addEventListener('click', replay);
-buildSlides();
-loadYT();
+async function init() {
+  await loadData();   // load from localStorage / json / defaults
+  buildSlides();      // render slides into DOM
+  loadYT();           // start YouTube API
+
+  /* Hide loader, show intro */
+  $loader.classList.add('gone');
+
+  document.getElementById('playBtn').addEventListener('click', start);
+  document.getElementById('replayBtn').addEventListener('click', replay);
+}
+
+init();
 </script>
 </body>
 </html>
