@@ -89,7 +89,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
 .pos-tl{top:15%;left:6%;text-align:left;}
 .pos-tc{top:15%;left:50%;transform:translateX(-50%);text-align:center;}
 .pos-tr{top:15%;right:6%;text-align:right;}
-
 .ll{display:block;font-family:var(--fh);font-style:italic;font-weight:300;
   font-size:clamp(1.5rem,3.3vw,2.9rem);line-height:1.42;color:var(--warm);
   text-shadow:0 3px 40px rgba(0,0,0,.92),0 1px 8px rgba(0,0,0,.8);
@@ -174,14 +173,16 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
   <p class="e-sub">Always yours to keep.</p>
   <div class="e-rule"></div>
   <p class="e-note">Kasoor · Baarishein · Tum Hi Ho · Tera Yaar Hoon Main · Khairiyat</p>
-  <button class="rbtn" onclick="replay()">Watch Again</button>
+  <button class="rbtn" id="replayBtn">Watch Again</button>
 </div>
 
-<!-- HIDDEN YT -->
-<div id="ytc" style="position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;overflow:hidden;"></div>
+<!-- HIDDEN YT CONTAINER -->
+<div id="ytc" style="position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;overflow:hidden;pointer-events:none;"></div>
 
 <script>
-/* ── SONGS ───────────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════
+   SONGS & SLIDES DATA
+═══════════════════════════════════════════════ */
 const SONGS = [
   { title:"Kasoor — Prateek Kuhad",         ytId:"N3vQBQ3XPCY", start:30 },
   { title:"Baarishein — Atif Aslam",         ytId:"ixrSQoJ57WM", start:15 },
@@ -190,229 +191,42 @@ const SONGS = [
   { title:"Khairiyat — Arijit Singh",        ytId:"dBgtCsrR4xU", start:18 }
 ];
 
-/* ── SLIDES ──────────────────────────────────────────────────── */
-/*
-  song: index into SONGS
-  dur:  ms this slide stays
-  pos:  css class for text placement
-  kb:   ken burns class
-  img:  Unsplash image URL
-  tint: colour overlay (mix-blend multiply)
-  lines: array of { text, cls }
-*/
 const SLIDES = [
-
-  /* ═══════════════════════════════
-     KASOOR — longing, first feelings
-     ═══════════════════════════════ */
-  {
-    img:"https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=1600&q=85",
-    tint:"rgba(40,20,8,0.32)", kb:"kb-zi", pos:"pos-bc", song:0, dur:9000,
-    lines:[
-      {text:"There are people you meet",cls:"d1"},
-      {text:"and the world quietly shifts.",cls:"d2 gold"}
-    ]
-  },
-  {
-    img:"https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=1600&q=85",
-    tint:"rgba(30,12,5,0.3)", kb:"kb-pr", pos:"pos-bl", song:0, dur:9000,
-    lines:[
-      {text:"She was one of them.",cls:"d1 big gold"}
-    ]
-  },
-  {
-    img:"https://images.unsplash.com/photo-1531306728370-e2ebd9d7bb99?w=1600&q=85",
-    tint:"rgba(20,10,20,0.28)", kb:"kb-zo", pos:"pos-mc", song:0, dur:10000,
-    lines:[
-      {text:"Kuch toh tha,",cls:"d1 gold"},
-      {text:"jo aaँkhon ne bola,",cls:"d2"},
-      {text:"jo lafzon ne nahi.",cls:"d3 rose"}
-    ]
-  },
-  {
-    img:"https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=1600&q=85",
-    tint:"rgba(10,5,25,0.3)", kb:"kb-pl", pos:"pos-tr", song:0, dur:9000,
-    lines:[
-      {text:"The kind of person",cls:"d1 sm"},
-      {text:"you remember",cls:"d2"},
-      {text:"on ordinary days.",cls:"d3 rose"}
-    ]
-  },
-  {
-    img:"https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=1600&q=85",
-    tint:"rgba(30,10,5,0.28)", kb:"kb-du", pos:"pos-bc", song:0, dur:9000,
-    lines:[
-      {text:"Kasoor tera nahi.",cls:"d1 big gold"},
-      {text:"Aur mera bhi nahi.",cls:"d2"}
-    ]
-  },
-
-  /* ═══════════════════════════════
-     BAARISHEIN — rain, emotion, depth
-     ═══════════════════════════════ */
-  {
-    img:"https://images.unsplash.com/photo-1519692933481-e162a57d6721?w=1600&q=85",
-    tint:"rgba(5,15,32,0.38)", kb:"kb-zi", pos:"pos-bc", song:1, dur:9500,
-    lines:[
-      {text:"Baarish jab bhi ho —",cls:"d1 blue"},
-      {text:"teri yaad aati hai.",cls:"d2"}
-    ]
-  },
-  {
-    img:"https://images.unsplash.com/photo-1534274988757-a28bf1a57c17?w=1600&q=85",
-    tint:"rgba(5,18,35,0.35)", kb:"kb-du", pos:"pos-ml", song:1, dur:9000,
-    lines:[
-      {text:"Some feelings",cls:"d1 caps"},
-      {text:"don't have names.",cls:"d2 big"},
-      {text:"They just live.",cls:"d3 blue"}
-    ]
-  },
-  {
-    img:"https://images.unsplash.com/photo-1473621038790-b778b4750efe?w=1600&q=85",
-    tint:"rgba(8,12,30,0.38)", kb:"kb-pr", pos:"pos-tc", song:1, dur:9500,
-    lines:[
-      {text:"Jo dil mein tha —",cls:"d1"},
-      {text:"woh kabhi keh nahi paaye.",cls:"d2 rose"}
-    ]
-  },
-  {
-    img:"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1600&q=85",
-    tint:"rgba(5,10,28,0.35)", kb:"kb-zo", pos:"pos-bc", song:1, dur:9000,
-    lines:[
-      {text:"And still —",cls:"d1 sm"},
-      {text:"she stayed.",cls:"d2 big blue"},
-      {text:"Like rain that never felt like sadness.",cls:"d3"}
-    ]
-  },
-  {
-    img:"https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=85",
-    tint:"rgba(5,8,25,0.32)", kb:"kb-pl", pos:"pos-br", song:1, dur:9000,
-    lines:[
-      {text:"Baarishein thi,",cls:"d1 blue"},
-      {text:"aur tum bhi.",cls:"d2 gold"}
-    ]
-  },
-
-  /* ═══════════════════════════════
-     TUM HI HO — pure warmth, love
-     ═══════════════════════════════ */
-  {
-    img:"https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1600&q=85",
-    tint:"rgba(30,8,5,0.28)", kb:"kb-zi", pos:"pos-mc", song:2, dur:10000,
-    lines:[
-      {text:"Tum hi ho.",cls:"d1 big gold"},
-    ]
-  },
-  {
-    img:"https://images.unsplash.com/photo-1454496522488-7a8e488e8606?w=1600&q=85",
-    tint:"rgba(22,8,5,0.28)", kb:"kb-pl", pos:"pos-bl", song:2, dur:9000,
-    lines:[
-      {text:"Har ek lamhe mein,",cls:"d1"},
-      {text:"sirf tum.",cls:"d2 amber big"}
-    ]
-  },
-  {
-    img:"https://images.unsplash.com/photo-1474631245212-32dc3c8310c6?w=1600&q=85",
-    tint:"rgba(18,6,4,0.3)", kb:"kb-du", pos:"pos-tc", song:2, dur:9500,
-    lines:[
-      {text:"There is something rare",cls:"d1 sm"},
-      {text:"about a person who makes",cls:"d2"},
-      {text:"the world feel like home.",cls:"d3 gold"}
-    ]
-  },
-  {
-    img:"https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=1600&q=85",
-    tint:"rgba(25,8,4,0.28)", kb:"kb-pr", pos:"pos-bc", song:2, dur:9000,
-    lines:[
-      {text:"Ab tere bina kya nahi —",cls:"d1 rose"},
-      {text:"yeh dil jaanta hai.",cls:"d2"}
-    ]
-  },
-
-  /* ═══════════════════════════════
-     TERA YAAR HOON MAIN — friendship, joy
-     ═══════════════════════════════ */
-  {
-    img:"https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1600&q=85",
-    tint:"rgba(28,15,0,0.25)", kb:"kb-zo", pos:"pos-tc", song:3, dur:9000,
-    lines:[
-      {text:"Tera yaar hoon main.",cls:"d1 gold big"},
-      {text:"Sada ke liye.",cls:"d2"}
-    ]
-  },
-  {
-    img:"https://images.unsplash.com/photo-1524117074681-31bd4de22ad3?w=1600&q=85",
-    tint:"rgba(30,18,0,0.26)", kb:"kb-pr", pos:"pos-bl", song:3, dur:9000,
-    lines:[
-      {text:"The laughs that made",cls:"d1"},
-      {text:"everything okay.",cls:"d2 amber"}
-    ]
-  },
-  {
-    img:"https://images.unsplash.com/photo-1504196606672-aef5c9cefc92?w=1600&q=85",
-    tint:"rgba(22,12,0,0.26)", kb:"kb-pl", pos:"pos-mc", song:3, dur:9500,
-    lines:[
-      {text:"Woh waqt,",cls:"d1"},
-      {text:"jo kabhi lautega nahi —",cls:"d2"},
-      {text:"par dil mein hai.",cls:"d3 gold"}
-    ]
-  },
-  {
-    img:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1600&q=85",
-    tint:"rgba(20,10,0,0.28)", kb:"kb-zi", pos:"pos-tr", song:3, dur:9000,
-    lines:[
-      {text:"Saath nibhaana,",cls:"d1 gold"},
-      {text:"yeh waada mera.",cls:"d2"}
-    ]
-  },
-
-  /* ═══════════════════════════════
-     KHAIRIYAT — care, distance, birthday
-     ═══════════════════════════════ */
-  {
-    img:"https://images.unsplash.com/photo-1500622944204-b135684e99fd?w=1600&q=85",
-    tint:"rgba(5,5,22,0.33)", kb:"kb-du", pos:"pos-bc", song:4, dur:9500,
-    lines:[
-      {text:"Khairiyat pooch,",cls:"d1 blue"},
-      {text:"kabhi toh khairiyat pooch.",cls:"d2"}
-    ]
-  },
-  {
-    img:"https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1600&q=85",
-    tint:"rgba(5,5,22,0.32)", kb:"kb-pl", pos:"pos-ml", song:4, dur:9500,
-    lines:[
-      {text:"Distance changes nothing",cls:"d1"},
-      {text:"that was ever real.",cls:"d2 rose"}
-    ]
-  },
-  {
-    img:"https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=1600&q=85",
-    tint:"rgba(8,5,20,0.35)", kb:"kb-zi", pos:"pos-bc", song:4, dur:10000,
-    lines:[
-      {text:"And today —",cls:"d1 caps"},
-      {text:"on your birthday,",cls:"d2 big gold"},
-      {text:"I just want you to feel it all.",cls:"d3"}
-    ]
-  },
-  {
-    img:"https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1600&q=85",
-    tint:"rgba(5,0,18,0.35)", kb:"kb-zo", pos:"pos-mc", song:4, dur:13000,
-    lines:[
-      {text:"Happy Birthday.",cls:"d1 big gold"},
-      {text:"You deserve every beautiful thing.",cls:"d2"},
-      {text:"Every single one.",cls:"d3 rose"}
-    ]
-  }
-
+  { img:"https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=1600&q=85", tint:"rgba(40,20,8,0.32)",   kb:"kb-zi", pos:"pos-bc", song:0, dur:9000,  lines:[{text:"There are people you meet",cls:"d1"},{text:"and the world quietly shifts.",cls:"d2 gold"}] },
+  { img:"https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=1600&q=85", tint:"rgba(30,12,5,0.3)",    kb:"kb-pr", pos:"pos-bl", song:0, dur:9000,  lines:[{text:"She was one of them.",cls:"d1 big gold"}] },
+  { img:"https://images.unsplash.com/photo-1531306728370-e2ebd9d7bb99?w=1600&q=85", tint:"rgba(20,10,20,0.28)",  kb:"kb-zo", pos:"pos-mc", song:0, dur:10000, lines:[{text:"Kuch toh tha,",cls:"d1 gold"},{text:"jo aaँkhon ne bola,",cls:"d2"},{text:"jo lafzon ne nahi.",cls:"d3 rose"}] },
+  { img:"https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=1600&q=85", tint:"rgba(10,5,25,0.3)",    kb:"kb-pl", pos:"pos-tr", song:0, dur:9000,  lines:[{text:"The kind of person",cls:"d1 sm"},{text:"you remember",cls:"d2"},{text:"on ordinary days.",cls:"d3 rose"}] },
+  { img:"https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=1600&q=85", tint:"rgba(30,10,5,0.28)",   kb:"kb-du", pos:"pos-bc", song:0, dur:9000,  lines:[{text:"Kasoor tera nahi.",cls:"d1 big gold"},{text:"Aur mera bhi nahi.",cls:"d2"}] },
+  { img:"https://images.unsplash.com/photo-1519692933481-e162a57d6721?w=1600&q=85", tint:"rgba(5,15,32,0.38)",   kb:"kb-zi", pos:"pos-bc", song:1, dur:9500,  lines:[{text:"Baarish jab bhi ho —",cls:"d1 blue"},{text:"teri yaad aati hai.",cls:"d2"}] },
+  { img:"https://images.unsplash.com/photo-1534274988757-a28bf1a57c17?w=1600&q=85", tint:"rgba(5,18,35,0.35)",   kb:"kb-du", pos:"pos-ml", song:1, dur:9000,  lines:[{text:"Some feelings",cls:"d1 caps"},{text:"don't have names.",cls:"d2 big"},{text:"They just live.",cls:"d3 blue"}] },
+  { img:"https://images.unsplash.com/photo-1473621038790-b778b4750efe?w=1600&q=85", tint:"rgba(8,12,30,0.38)",   kb:"kb-pr", pos:"pos-tc", song:1, dur:9500,  lines:[{text:"Jo dil mein tha —",cls:"d1"},{text:"woh kabhi keh nahi paaye.",cls:"d2 rose"}] },
+  { img:"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1600&q=85", tint:"rgba(5,10,28,0.35)",   kb:"kb-zo", pos:"pos-bc", song:1, dur:9000,  lines:[{text:"And still —",cls:"d1 sm"},{text:"she stayed.",cls:"d2 big blue"},{text:"Like rain that never felt like sadness.",cls:"d3"}] },
+  { img:"https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=85", tint:"rgba(5,8,25,0.32)",    kb:"kb-pl", pos:"pos-br", song:1, dur:9000,  lines:[{text:"Baarishein thi,",cls:"d1 blue"},{text:"aur tum bhi.",cls:"d2 gold"}] },
+  { img:"https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1600&q=85", tint:"rgba(30,8,5,0.28)",    kb:"kb-zi", pos:"pos-mc", song:2, dur:10000, lines:[{text:"Tum hi ho.",cls:"d1 big gold"}] },
+  { img:"https://images.unsplash.com/photo-1454496522488-7a8e488e8606?w=1600&q=85", tint:"rgba(22,8,5,0.28)",    kb:"kb-pl", pos:"pos-bl", song:2, dur:9000,  lines:[{text:"Har ek lamhe mein,",cls:"d1"},{text:"sirf tum.",cls:"d2 big gold"}] },
+  { img:"https://images.unsplash.com/photo-1474631245212-32dc3c8310c6?w=1600&q=85", tint:"rgba(18,6,4,0.3)",     kb:"kb-du", pos:"pos-tc", song:2, dur:9500,  lines:[{text:"There is something rare",cls:"d1 sm"},{text:"about a person who makes",cls:"d2"},{text:"the world feel like home.",cls:"d3 gold"}] },
+  { img:"https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=1600&q=85", tint:"rgba(25,8,4,0.28)",    kb:"kb-pr", pos:"pos-bc", song:2, dur:9000,  lines:[{text:"Ab tere bina kya nahi —",cls:"d1 rose"},{text:"yeh dil jaanta hai.",cls:"d2"}] },
+  { img:"https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1600&q=85", tint:"rgba(28,15,0,0.25)",   kb:"kb-zo", pos:"pos-tc", song:3, dur:9000,  lines:[{text:"Tera yaar hoon main.",cls:"d1 big gold"},{text:"Sada ke liye.",cls:"d2"}] },
+  { img:"https://images.unsplash.com/photo-1524117074681-31bd4de22ad3?w=1600&q=85", tint:"rgba(30,18,0,0.26)",   kb:"kb-pr", pos:"pos-bl", song:3, dur:9000,  lines:[{text:"The laughs that made",cls:"d1"},{text:"everything okay.",cls:"d2 gold"}] },
+  { img:"https://images.unsplash.com/photo-1504196606672-aef5c9cefc92?w=1600&q=85", tint:"rgba(22,12,0,0.26)",   kb:"kb-pl", pos:"pos-mc", song:3, dur:9500,  lines:[{text:"Woh waqt,",cls:"d1"},{text:"jo kabhi lautega nahi —",cls:"d2"},{text:"par dil mein hai.",cls:"d3 gold"}] },
+  { img:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1600&q=85", tint:"rgba(20,10,0,0.28)",   kb:"kb-zi", pos:"pos-tr", song:3, dur:9000,  lines:[{text:"Saath nibhaana,",cls:"d1 gold"},{text:"yeh waada mera.",cls:"d2"}] },
+  { img:"https://images.unsplash.com/photo-1500622944204-b135684e99fd?w=1600&q=85", tint:"rgba(5,5,22,0.33)",    kb:"kb-du", pos:"pos-bc", song:4, dur:9500,  lines:[{text:"Khairiyat pooch,",cls:"d1 blue"},{text:"kabhi toh khairiyat pooch.",cls:"d2"}] },
+  { img:"https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1600&q=85", tint:"rgba(5,5,22,0.32)",    kb:"kb-pl", pos:"pos-ml", song:4, dur:9500,  lines:[{text:"Distance changes nothing",cls:"d1"},{text:"that was ever real.",cls:"d2 rose"}] },
+  { img:"https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=1600&q=85", tint:"rgba(8,5,20,0.35)",     kb:"kb-zi", pos:"pos-bc", song:4, dur:10000, lines:[{text:"And today —",cls:"d1 caps"},{text:"on your birthday,",cls:"d2 big gold"},{text:"I just want you to feel it all.",cls:"d3"}] },
+  { img:"https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1600&q=85", tint:"rgba(5,0,18,0.35)",    kb:"kb-zo", pos:"pos-mc", song:4, dur:13000, lines:[{text:"Happy Birthday.",cls:"d1 big gold"},{text:"You deserve every beautiful thing.",cls:"d2"},{text:"Every single one.",cls:"d3 rose"}] }
 ];
 
-/* ── ENGINE ──────────────────────────────────────────────────── */
-let cur      = -1;
-let stTimer  = null;
-let running  = false;
-let ytPlrs   = {};
-let ytOk     = false;
-let activeSng= -1;
+/* ═══════════════════════════════════════════════
+   ENGINE STATE
+═══════════════════════════════════════════════ */
+let cur       = -1;
+let stTimer   = null;
+let running   = false;
+let activeSng = -1;
+let pendingSng= -1;        // song we WANT to play
+let ytPlrs    = {};        // index → YT.Player
+let ytReady   = {};        // index → true when onReady fired
+let ytOk      = false;     // IFrame API loaded
 
 const $stage = document.getElementById('stage');
 const $pb    = document.getElementById('pb');
@@ -422,143 +236,295 @@ const $mbars = document.getElementById('mbars');
 const $slbl  = document.getElementById('slbl');
 const $intro = document.getElementById('intro');
 const $ec    = document.getElementById('ec');
+const $ytc   = document.getElementById('ytc');
 
-/* BUILD */
+/* ═══════════════════════════════════════════════
+   BUILD SLIDES
+═══════════════════════════════════════════════ */
 function buildSlides() {
   SLIDES.forEach((s, i) => {
     const d = document.createElement('div');
-    d.className = 'slide'; d.id = `sl-${i}`;
+    d.className = 'slide';
+    d.id = `sl-${i}`;
     d.innerHTML = `
       <div class="sbg ${s.kb}" style="background-image:url('${s.img}')"></div>
       <div class="sovl"></div>
       <div class="stint" style="background:${s.tint}"></div>
       <div class="lw ${s.pos}">
-        ${s.lines.map(l=>`<span class="ll ${l.cls||''}">${l.text}</span>`).join('')}
+        ${s.lines.map(l => `<span class="ll ${l.cls||''}">${l.text}</span>`).join('')}
       </div>`;
     $stage.appendChild(d);
   });
 }
 
-/* GO TO SLIDE */
-function goSlide(idx) {
-  if (idx >= SLIDES.length) { showEnd(); return; }
-  const prev = cur; cur = idx;
-
-  if (prev >= 0) {
-    const pe = document.getElementById(`sl-${prev}`);
-    if (pe) {
-      pe.querySelectorAll('.ll').forEach(l => { l.classList.remove('in'); l.classList.add('out'); });
-      setTimeout(() => pe.classList.remove('active'), 1500);
-    }
-  }
-
-  const el = document.getElementById(`sl-${idx}`);
-  /* Reset Ken Burns by cloning bg node */
-  const ob = el.querySelector('.sbg');
-  const nb = ob.cloneNode(false); nb.className = ob.className; nb.style.cssText = ob.style.cssText;
-  ob.parentNode.replaceChild(nb, ob);
-  el.classList.add('active');
-
-  /* Lyrics */
-  const lls = el.querySelectorAll('.ll');
-  lls.forEach(l => { l.classList.remove('out'); });
-  requestAnimationFrame(() => requestAnimationFrame(() => lls.forEach(l => l.classList.add('in'))));
-
-  /* Progress */
-  const dur = SLIDES[idx].dur;
-  $pb.style.transition = 'none'; $pb.style.width = '0%';
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    $pb.style.transition = `width ${dur/1000}s linear`;
-    $pb.style.width = '100%';
-  }));
-
-  $ctr.textContent = `${String(idx+1).padStart(2,'0')} / ${String(SLIDES.length).padStart(2,'0')}`;
-
-  const sng = SLIDES[idx].song;
-  if (sng !== activeSng) { activeSng = sng; switchSong(sng); }
-
-  clearTimeout(stTimer);
-  stTimer = setTimeout(() => goSlide(cur + 1), dur);
-}
-
-/* YOUTUBE */
+/* ═══════════════════════════════════════════════
+   YOUTUBE — LOAD API
+═══════════════════════════════════════════════ */
 function loadYT() {
-  const t = document.createElement('script');
-  t.src = 'https://www.youtube.com/iframe_api';
-  document.head.appendChild(t);
+  const s = document.createElement('script');
+  s.src = 'https://www.youtube.com/iframe_api';
+  document.head.appendChild(s);
 }
 
-window.onYouTubeIframeAPIReady = function() {
+/* Called by YouTube when API is ready */
+window.onYouTubeIframeAPIReady = function () {
   ytOk = true;
-  const wrap = document.getElementById('ytc');
-  SONGS.forEach((s, i) => {
-    const el = document.createElement('div'); el.id = `yt-${i}`; wrap.appendChild(el);
+  SONGS.forEach((song, i) => {
+    const el = document.createElement('div');
+    el.id = `yt-${i}`;
+    $ytc.appendChild(el);
+
     ytPlrs[i] = new YT.Player(`yt-${i}`, {
-      height:'1', width:'1', videoId: s.ytId,
-      playerVars: { start:s.start, autoplay:0, controls:0, disablekb:1, fs:0, modestbranding:1, rel:0 },
-      events: { onReady: e => e.target.setVolume(0) }
+      height : '1',
+      width  : '1',
+      videoId: song.ytId,
+      playerVars: {
+        start         : song.start,
+        autoplay      : 0,
+        controls      : 0,
+        disablekb     : 1,
+        fs            : 0,
+        modestbranding: 1,
+        rel           : 0,
+        enablejsapi   : 1,
+        origin        : window.location.origin || '*'
+      },
+      events: {
+        onReady      : e => onPlayerReady(e, i),
+        onStateChange: e => onPlayerState(e, i)
+      }
     });
   });
 };
 
-function switchSong(idx) {
-  $slbl.classList.remove('on');
-  setTimeout(() => { $slbl.textContent = SONGS[idx].title; $slbl.classList.add('on'); }, 350);
-  if (!ytOk) return;
-  SONGS.forEach((_, i) => {
-    if (i !== idx && ytPlrs[i]) fadeVol(ytPlrs[i], 0, () => { try{ytPlrs[i].pauseVideo();}catch{} });
-  });
-  if (ytPlrs[idx]) {
-    try { ytPlrs[idx].seekTo(SONGS[idx].start, true); ytPlrs[idx].playVideo(); fadeVol(ytPlrs[idx], 82); }
-    catch(e){}
+/* Player ready — mute, then check if we were waiting for it */
+function onPlayerReady(event, idx) {
+  ytReady[idx] = true;
+  event.target.setVolume(0);
+  event.target.mute();
+
+  // If this is the song we need to play right now, play it
+  if (pendingSng === idx) {
+    playSong(idx);
   }
 }
 
-function fadeVol(player, to, cb) {
-  let v = 0; try { v = player.getVolume()||0; } catch{}
-  const step = to > v ? 3 : -3;
-  const iv = setInterval(() => {
-    v += step;
-    if ((step>0&&v>=to)||(step<0&&v<=to)) { v=to; clearInterval(iv); if(cb) cb(); }
-    try { player.setVolume(Math.max(0,Math.min(100,v))); } catch{}
-  }, 80);
+/* Re-seek if video ends (loop from start point) */
+function onPlayerState(event, idx) {
+  if (event.data === YT.PlayerState.ENDED) {
+    try {
+      event.target.seekTo(SONGS[idx].start, true);
+      event.target.playVideo();
+    } catch {}
+  }
 }
 
-/* START */
+/* ═══════════════════════════════════════════════
+   PLAY A SONG — actual play logic
+═══════════════════════════════════════════════ */
+function playSong(idx) {
+  if (!ytOk || !ytReady[idx] || !ytPlrs[idx]) return;
+  try {
+    const p = ytPlrs[idx];
+    p.unMute();
+    p.seekTo(SONGS[idx].start, true);
+    p.playVideo();
+    fadeVol(p, 0, 85, 2000);   // fade in from 0 → 85 over 2 sec
+  } catch (e) {
+    console.warn('playSong error', e);
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   SWITCH SONG (called when slide changes song)
+═══════════════════════════════════════════════ */
+function switchSong(idx) {
+  if (idx === activeSng) return;
+
+  // Update label
+  $slbl.classList.remove('on');
+  setTimeout(() => {
+    $slbl.textContent = SONGS[idx] ? SONGS[idx].title : '';
+    $slbl.classList.add('on');
+  }, 350);
+
+  // Fade out & pause ALL other songs
+  SONGS.forEach((_, i) => {
+    if (i !== idx && ytPlrs[i] && ytReady[i]) {
+      fadeVol(ytPlrs[i], null, 0, 1200, () => {
+        try { ytPlrs[i].pauseVideo(); } catch {}
+      });
+    }
+  });
+
+  activeSng  = idx;
+  pendingSng = idx;   // remember in case player isn't ready yet
+
+  if (ytOk && ytReady[idx]) {
+    playSong(idx);
+  }
+  // else: onPlayerReady will call playSong when it fires
+}
+
+/* ═══════════════════════════════════════════════
+   VOLUME FADE
+   fadeVol(player, fromVol|null, toVol, durationMs, cb)
+   Pass null for fromVol to read current volume
+═══════════════════════════════════════════════ */
+function fadeVol(player, from, to, duration, cb) {
+  let current = from;
+  if (current === null) {
+    try { current = player.getVolume(); } catch { current = to > 0 ? 0 : 85; }
+  }
+
+  const steps    = 30;
+  const interval = duration / steps;
+  const delta    = (to - current) / steps;
+  let   step     = 0;
+
+  // Unmute so volume control works
+  try { player.unMute(); } catch {}
+
+  const iv = setInterval(() => {
+    step++;
+    current += delta;
+    const vol = Math.round(Math.max(0, Math.min(100, current)));
+    try { player.setVolume(vol); } catch {}
+
+    if (step >= steps) {
+      clearInterval(iv);
+      try { player.setVolume(to); } catch {}
+      if (cb) cb();
+    }
+  }, interval);
+}
+
+/* ═══════════════════════════════════════════════
+   SLIDE NAVIGATION
+═══════════════════════════════════════════════ */
+function goSlide(idx) {
+  if (idx >= SLIDES.length) { showEnd(); return; }
+
+  const prev = cur;
+  cur = idx;
+
+  // Deactivate previous
+  if (prev >= 0) {
+    const pe = document.getElementById(`sl-${prev}`);
+    if (pe) {
+      pe.querySelectorAll('.ll').forEach(l => {
+        l.classList.remove('in');
+        l.classList.add('out');
+      });
+      setTimeout(() => pe.classList.remove('active'), 1500);
+    }
+  }
+
+  // Activate current — reset Ken Burns by replacing bg node
+  const el = document.getElementById(`sl-${idx}`);
+  const ob = el.querySelector('.sbg');
+  const nb = document.createElement('div');
+  nb.className   = ob.className;
+  nb.style.cssText = ob.style.cssText;
+  ob.parentNode.replaceChild(nb, ob);
+
+  el.classList.add('active');
+
+  // Animate lyrics in
+  const lls = el.querySelectorAll('.ll');
+  lls.forEach(l => l.classList.remove('out'));
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() =>
+      lls.forEach(l => l.classList.add('in'))
+    )
+  );
+
+  // Progress bar
+  const dur = SLIDES[idx].dur;
+  $pb.style.transition = 'none';
+  $pb.style.width = '0%';
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() => {
+      $pb.style.transition = `width ${dur / 1000}s linear`;
+      $pb.style.width = '100%';
+    })
+  );
+
+  // Counter
+  $ctr.textContent = `${String(idx + 1).padStart(2,'0')} / ${String(SLIDES.length).padStart(2,'0')}`;
+
+  // Song switch
+  const sng = SLIDES[idx].song;
+  if (sng !== activeSng) {
+    switchSong(sng);
+  }
+
+  // Schedule next slide
+  clearTimeout(stTimer);
+  stTimer = setTimeout(() => goSlide(cur + 1), dur);
+}
+
+/* ═══════════════════════════════════════════════
+   START / END / REPLAY
+═══════════════════════════════════════════════ */
 function start() {
   $intro.classList.add('gone');
-  [$pw,$ctr,$mbars,$slbl].forEach(e => e.classList.add('on'));
+  [$pw, $ctr, $mbars, $slbl].forEach(e => e.classList.add('on'));
   running = true;
   setTimeout(() => goSlide(0), 1600);
 }
 
-/* END */
 function showEnd() {
-  running = false; $pb.style.width = '100%';
-  SONGS.forEach((_,i) => { if(ytPlrs[i]) fadeVol(ytPlrs[i],0,()=>{ try{ytPlrs[i].pauseVideo();}catch{} }); });
+  running = false;
+  $pb.style.width = '100%';
+  // Fade out all songs
+  SONGS.forEach((_, i) => {
+    if (ytPlrs[i] && ytReady[i]) {
+      fadeVol(ytPlrs[i], null, 0, 2000, () => {
+        try { ytPlrs[i].pauseVideo(); } catch {}
+      });
+    }
+  });
   setTimeout(() => $ec.classList.add('on'), 2000);
 }
 
-/* REPLAY */
 function replay() {
-  $ec.classList.remove('on'); cur=-1; activeSng=-1;
+  $ec.classList.remove('on');
+  cur = -1;
+  activeSng = -1;
+  pendingSng = -1;
+
   document.querySelectorAll('.slide').forEach(s => {
     s.classList.remove('active');
     s.querySelectorAll('.ll').forEach(l => l.classList.remove('in','out'));
   });
+
   running = true;
   setTimeout(() => goSlide(0), 800);
 }
 
-/* KEYBOARD: → / Space = next, ← = prev */
+/* ═══════════════════════════════════════════════
+   KEYBOARD NAV
+═══════════════════════════════════════════════ */
 document.addEventListener('keydown', e => {
   if (!running) return;
-  if (e.key==='ArrowRight'||e.key===' ') { e.preventDefault(); clearTimeout(stTimer); goSlide(cur+1); }
-  if (e.key==='ArrowLeft') { e.preventDefault(); clearTimeout(stTimer); goSlide(Math.max(0,cur-1)); }
+  if (e.key === 'ArrowRight' || e.key === ' ') {
+    e.preventDefault();
+    clearTimeout(stTimer);
+    goSlide(cur + 1);
+  }
+  if (e.key === 'ArrowLeft') {
+    e.preventDefault();
+    clearTimeout(stTimer);
+    goSlide(Math.max(0, cur - 1));
+  }
 });
 
-/* INIT */
+/* ═══════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════ */
 document.getElementById('playBtn').addEventListener('click', start);
+document.getElementById('replayBtn').addEventListener('click', replay);
 buildSlides();
 loadYT();
 </script>
