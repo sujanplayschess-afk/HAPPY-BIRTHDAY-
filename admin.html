@@ -1,774 +1,912 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin — Cinematic Biography</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin — For Her</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&display=swap');
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg: #0d0d12;
-      --surface: #141418;
-      --surface2: #1a1a21;
-      --border: rgba(255,255,255,0.07);
-      --gold: #c8a96e;
-      --gold-faint: rgba(200,169,110,0.08);
-      --white: #e8e4dc;
-      --dim: rgba(232,228,220,0.5);
-      --danger: #c0504a;
-      --success: #4a9c6e;
-      --font: 'Jost', sans-serif;
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0d0d12;--surface:#141418;--surface2:#1a1a21;
+      --border:rgba(255,255,255,0.07);
+      --gold:#c8a96e;--gold-faint:rgba(200,169,110,0.08);
+      --white:#e8e4dc;--dim:rgba(232,228,220,0.5);
+      --danger:#c0504a;--success:#4a9c6e;
+      --amber:#e8a96a;--rose:#d4898a;--blue:#7aafd4;
+      --font:'Jost',sans-serif;
     }
+    body{background:var(--bg);color:var(--white);font-family:var(--font);
+      font-weight:300;min-height:100vh;padding-bottom:80px;}
 
-    body {
-      background: var(--bg);
-      color: var(--white);
-      font-family: var(--font);
-      font-weight: 300;
-      min-height: 100vh;
-      padding-bottom: 80px;
-    }
+    /* HEADER */
+    header{display:flex;align-items:center;justify-content:space-between;
+      padding:20px 32px;border-bottom:1px solid var(--border);
+      position:sticky;top:0;background:var(--bg);z-index:100;}
+    .logo{display:flex;align-items:center;gap:12px;}
+    .logo-mark{width:28px;height:28px;border:1px solid var(--gold);
+      border-radius:50%;display:flex;align-items:center;justify-content:center;}
+    .logo-mark::before{content:'';width:0;height:0;
+      border-left:7px solid var(--gold);
+      border-top:4px solid transparent;border-bottom:4px solid transparent;}
+    .logo-text{font-size:13px;letter-spacing:.18em;text-transform:uppercase;
+      color:var(--white);font-weight:300;}
+    .logo-text span{color:var(--gold);}
+    .header-actions{display:flex;gap:10px;}
 
-    /* ---- HEADER ---- */
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 20px 32px;
-      border-bottom: 1px solid var(--border);
-      position: sticky;
-      top: 0;
-      background: var(--bg);
-      z-index: 100;
-    }
+    /* BUTTONS */
+    .btn{padding:9px 20px;font-family:var(--font);font-weight:300;font-size:11px;
+      letter-spacing:.15em;text-transform:uppercase;border:none;border-radius:2px;
+      cursor:pointer;transition:all .25s;}
+    .btn-primary{background:var(--gold);color:#0d0d12;font-weight:500;}
+    .btn-primary:hover{filter:brightness(1.1);}
+    .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--dim);}
+    .btn-ghost:hover{border-color:var(--gold);color:var(--gold);}
+    .btn-danger{background:transparent;border:1px solid rgba(192,80,74,.3);
+      color:var(--danger);padding:6px 14px;font-size:10px;}
+    .btn-danger:hover{background:rgba(192,80,74,.1);}
+    .btn-add{background:var(--gold-faint);border:1px dashed rgba(200,169,110,.3);
+      color:var(--gold);width:100%;padding:12px;margin-top:12px;border-radius:2px;
+      font-size:11px;letter-spacing:.15em;cursor:pointer;transition:all .25s;
+      font-family:var(--font);}
+    .btn-add:hover{background:rgba(200,169,110,.12);}
 
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+    /* LAYOUT */
+    main{max-width:1160px;margin:0 auto;padding:32px 24px;}
+    .tab-bar{display:flex;border-bottom:1px solid var(--border);margin-bottom:32px;}
+    .tab{padding:12px 24px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+      color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;
+      transition:all .25s;background:none;border-top:none;border-left:none;
+      border-right:none;font-family:var(--font);font-weight:300;}
+    .tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+    .tab-content{display:none;}
+    .tab-content.active{display:block;}
 
-    .logo-mark {
-      width: 28px;
-      height: 28px;
-      border: 1px solid var(--gold);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+    /* SLIDE CARDS */
+    .slides-list{display:flex;flex-direction:column;gap:16px;}
+    .slide-card{background:var(--surface);border:1px solid var(--border);border-radius:4px;overflow:hidden;}
+    .slide-card-header{display:flex;align-items:center;gap:12px;padding:14px 20px;
+      cursor:pointer;border-bottom:1px solid transparent;transition:border-color .2s;}
+    .slide-card.open .slide-card-header{border-bottom-color:var(--border);}
+    .slide-num{width:28px;height:28px;border:1px solid var(--gold);border-radius:50%;
+      display:flex;align-items:center;justify-content:center;font-size:11px;
+      color:var(--gold);flex-shrink:0;}
+    .slide-card-title{flex:1;font-size:13px;letter-spacing:.06em;}
+    .slide-card-meta{font-size:10px;color:var(--dim);letter-spacing:.1em;}
+    .slide-toggle{color:var(--dim);transition:transform .25s;font-size:12px;}
+    .slide-card.open .slide-toggle{transform:rotate(180deg);}
+    .slide-card-body{display:none;padding:20px;}
+    .slide-card.open .slide-card-body{display:block;}
 
-    .logo-mark::before {
-      content: '';
-      width: 6px;
-      height: 8px;
-      border-left: 6px solid var(--gold);
-      border-top: 4px solid transparent;
-      border-bottom: 4px solid transparent;
-    }
+    /* SONG CARDS */
+    .songs-list{display:flex;flex-direction:column;gap:12px;}
+    .song-card{background:var(--surface);border:1px solid var(--border);
+      border-radius:4px;padding:16px 20px;}
+    .song-header{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+    .song-icon{width:32px;height:32px;background:var(--gold-faint);border-radius:50%;
+      display:flex;align-items:center;justify-content:center;flex-shrink:0;
+      color:var(--gold);font-size:14px;}
+    .song-label{flex:1;font-size:13px;}
+    .song-badge{font-size:10px;color:var(--gold);letter-spacing:.1em;
+      background:rgba(200,169,110,.1);padding:3px 10px;border-radius:10px;}
 
-    .logo-text {
-      font-size: 13px;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--white);
-      font-weight: 300;
-    }
+    /* END CARD EDITOR */
+    .endcard-section{background:var(--surface);border:1px solid var(--border);
+      border-radius:4px;padding:24px;}
+    .section-title{font-size:10px;letter-spacing:.3em;text-transform:uppercase;
+      color:var(--gold);margin-bottom:16px;}
 
-    .logo-text span { color: var(--gold); }
+    /* FORMS */
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+    .form-group{display:flex;flex-direction:column;gap:6px;}
+    .form-group.full{grid-column:1/-1;}
+    label{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);}
+    input,select,textarea{background:var(--surface2);border:1px solid var(--border);
+      border-radius:2px;color:var(--white);font-family:var(--font);font-weight:300;
+      font-size:13px;padding:9px 12px;transition:border-color .2s;width:100%;}
+    input:focus,select:focus,textarea:focus{outline:none;border-color:rgba(200,169,110,.4);}
+    select option{background:var(--surface2);}
+    textarea{resize:vertical;min-height:70px;}
 
-    .header-actions {
-      display: flex;
-      gap: 10px;
-    }
+    /* IMAGE UPLOAD */
+    .img-upload-wrap{position:relative;}
+    .img-preview{width:100%;height:90px;object-fit:cover;border-radius:2px;
+      border:1px solid var(--border);margin-top:8px;display:none;background:#111;}
+    .img-preview.show{display:block;}
+    .upload-row{display:flex;gap:8px;align-items:stretch;}
+    .upload-row input[type="url"]{flex:1;}
+    .upload-btn{flex-shrink:0;padding:9px 14px;background:var(--gold-faint);
+      border:1px dashed rgba(200,169,110,.35);border-radius:2px;color:var(--gold);
+      font-family:var(--font);font-size:10px;letter-spacing:.12em;cursor:pointer;
+      transition:all .25s;white-space:nowrap;}
+    .upload-btn:hover{background:rgba(200,169,110,.14);}
+    .file-input{display:none;}
 
-    /* ---- BUTTONS ---- */
-    .btn {
-      padding: 9px 20px;
-      font-family: var(--font);
-      font-weight: 300;
-      font-size: 11px;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      border: none;
-      border-radius: 2px;
-      cursor: pointer;
-      transition: all 0.25s;
-    }
+    /* LINES EDITOR */
+    .lines-editor{display:flex;flex-direction:column;gap:8px;}
+    .line-row{display:flex;gap:8px;align-items:center;}
+    .line-row input[type="text"]{flex:1;}
+    .line-row select{width:110px;flex-shrink:0;}
+    .line-row .btn-danger{flex-shrink:0;}
+    .add-line-btn{background:transparent;border:1px dashed rgba(200,169,110,.2);
+      color:rgba(200,169,110,.5);font-family:var(--font);font-size:10px;
+      letter-spacing:.14em;padding:7px;cursor:pointer;border-radius:2px;
+      transition:all .25s;width:100%;margin-top:4px;}
+    .add-line-btn:hover{border-color:var(--gold);color:var(--gold);}
 
-    .btn-primary {
-      background: var(--gold);
-      color: #0d0d12;
-      font-weight: 500;
-    }
-    .btn-primary:hover { filter: brightness(1.1); }
+    /* COLOR DOTS for line preview */
+    .color-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+    .color-dot.gold{background:var(--amber);}
+    .color-dot.rose{background:var(--rose);}
+    .color-dot.blue{background:var(--blue);}
+    .color-dot.none{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.15);}
 
-    .btn-ghost {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--dim);
-    }
-    .btn-ghost:hover { border-color: var(--gold); color: var(--gold); }
+    /* FORM FOOTER */
+    .form-footer{display:flex;justify-content:flex-end;align-items:center;
+      gap:10px;margin-top:16px;padding-top:16px;border-top:1px solid var(--border);}
 
-    .btn-danger {
-      background: transparent;
-      border: 1px solid rgba(192,80,74,0.3);
-      color: var(--danger);
-      padding: 6px 14px;
-      font-size: 10px;
-    }
-    .btn-danger:hover { background: rgba(192,80,74,0.1); }
+    /* EXPORT */
+    .export-section{background:var(--surface);border:1px solid var(--border);
+      border-radius:4px;padding:28px;}
+    .export-title{font-size:12px;letter-spacing:.25em;text-transform:uppercase;
+      color:var(--gold);margin-bottom:8px;}
+    .export-desc{font-size:13px;color:var(--dim);line-height:1.7;margin-bottom:20px;}
+    .json-preview{background:var(--surface2);border:1px solid var(--border);
+      border-radius:2px;padding:16px;font-family:'Courier New',monospace;font-size:11px;
+      color:var(--dim);max-height:260px;overflow:auto;white-space:pre-wrap;margin-bottom:16px;}
 
-    .btn-add {
-      background: var(--gold-faint);
-      border: 1px dashed rgba(200,169,110,0.3);
-      color: var(--gold);
-      width: 100%;
-      padding: 12px;
-      margin-top: 12px;
-      border-radius: 2px;
-      font-size: 11px;
-      letter-spacing: 0.15em;
-      cursor: pointer;
-      transition: all 0.25s;
-    }
-    .btn-add:hover { background: rgba(200,169,110,0.12); }
+    /* TOAST */
+    .toast{position:fixed;bottom:32px;left:50%;
+      transform:translateX(-50%) translateY(20px);
+      background:var(--surface2);border:1px solid rgba(200,169,110,.3);
+      color:var(--gold);padding:12px 28px;font-size:11px;letter-spacing:.15em;
+      border-radius:2px;opacity:0;transition:all .4s ease;pointer-events:none;z-index:9999;}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
-    /* ---- LAYOUT ---- */
-    main {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 32px 24px;
-    }
+    /* DRAG */
+    .drag-handle{cursor:grab;color:var(--dim);padding:2px 6px 2px 0;
+      font-size:14px;user-select:none;}
+    .drag-handle:active{cursor:grabbing;}
 
-    .tab-bar {
-      display: flex;
-      gap: 0;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 32px;
-    }
+    /* DIVIDER */
+    .section-divider{height:1px;background:var(--border);margin:28px 0;}
 
-    .tab {
-      padding: 12px 24px;
-      font-size: 11px;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--dim);
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      transition: all 0.25s;
-      background: none;
-      border-top: none;
-      border-left: none;
-      border-right: none;
-      font-family: var(--font);
-      font-weight: 300;
-    }
-
-    .tab.active {
-      color: var(--gold);
-      border-bottom-color: var(--gold);
-    }
-
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-
-    /* ---- SCENE CARDS ---- */
-    .scenes-list {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .scene-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      overflow: hidden;
-    }
-
-    .scene-card-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 14px 20px;
-      cursor: pointer;
-      border-bottom: 1px solid transparent;
-      transition: border-color 0.2s;
-    }
-
-    .scene-card.open .scene-card-header {
-      border-bottom-color: var(--border);
-    }
-
-    .scene-number {
-      width: 28px;
-      height: 28px;
-      border: 1px solid var(--gold);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      color: var(--gold);
-      flex-shrink: 0;
-    }
-
-    .scene-card-title {
-      flex: 1;
-      font-size: 13px;
-      letter-spacing: 0.08em;
-    }
-
-    .scene-card-meta {
-      font-size: 10px;
-      color: var(--dim);
-      letter-spacing: 0.1em;
-    }
-
-    .scene-toggle {
-      width: 16px;
-      height: 16px;
-      color: var(--dim);
-      transition: transform 0.25s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .scene-card.open .scene-toggle { transform: rotate(180deg); }
-
-    .scene-card-body {
-      display: none;
-      padding: 20px;
-    }
-
-    .scene-card.open .scene-card-body { display: block; }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
-
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .form-group.full { grid-column: 1 / -1; }
-
-    label {
-      font-size: 10px;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--dim);
-    }
-
-    input, select, textarea {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 2px;
-      color: var(--white);
-      font-family: var(--font);
-      font-weight: 300;
-      font-size: 13px;
-      padding: 9px 12px;
-      transition: border-color 0.2s;
-      width: 100%;
-    }
-
-    input:focus, select:focus, textarea:focus {
-      outline: none;
-      border-color: rgba(200,169,110,0.4);
-    }
-
-    select option { background: var(--surface2); }
-
-    textarea { resize: vertical; min-height: 70px; }
-
-    .form-footer {
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      gap: 10px;
-      margin-top: 16px;
-      padding-top: 16px;
-      border-top: 1px solid var(--border);
-    }
-
-    /* ---- MUSIC TRACKS ---- */
-    .music-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .track-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 16px 20px;
-    }
-
-    .track-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 14px;
-    }
-
-    .track-icon {
-      width: 32px;
-      height: 32px;
-      background: var(--gold-faint);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .track-icon svg { color: var(--gold); }
-    .track-label { flex: 1; font-size: 13px; }
-    .track-time { font-size: 11px; color: var(--gold); letter-spacing: 0.1em; }
-
-    /* ---- EXPORT ---- */
-    .export-section {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 28px;
-    }
-
-    .export-title {
-      font-size: 12px;
-      letter-spacing: 0.25em;
-      text-transform: uppercase;
-      color: var(--gold);
-      margin-bottom: 8px;
-    }
-
-    .export-desc {
-      font-size: 13px;
-      color: var(--dim);
-      line-height: 1.7;
-      margin-bottom: 20px;
-    }
-
-    .json-preview {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 2px;
-      padding: 16px;
-      font-family: 'Courier New', monospace;
-      font-size: 11px;
-      color: var(--dim);
-      max-height: 220px;
-      overflow: auto;
-      white-space: pre-wrap;
-      margin-bottom: 16px;
-    }
-
-    /* ---- NOTIFICATION ---- */
-    .toast {
-      position: fixed;
-      bottom: 32px;
-      left: 50%;
-      transform: translateX(-50%) translateY(20px);
-      background: var(--surface2);
-      border: 1px solid rgba(200,169,110,0.3);
-      color: var(--gold);
-      padding: 12px 28px;
-      font-size: 11px;
-      letter-spacing: 0.15em;
-      border-radius: 2px;
-      opacity: 0;
-      transition: all 0.4s ease;
-      pointer-events: none;
-    }
-
-    .toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
-
-    /* ---- DRAG HANDLE ---- */
-    .drag-handle {
-      cursor: grab;
-      color: var(--dim);
-      padding: 2px 8px 2px 0;
-      font-size: 14px;
-      user-select: none;
-    }
-
-    .drag-handle:active { cursor: grabbing; }
-
-    @media (max-width: 640px) {
-      .form-grid { grid-template-columns: 1fr; }
-      header { padding: 16px 16px; }
-      main { padding: 20px 12px; }
+    @media(max-width:640px){
+      .form-grid{grid-template-columns:1fr;}
+      header{padding:16px;}
+      main{padding:20px 12px;}
+      .upload-row{flex-direction:column;}
     }
   </style>
 </head>
 <body>
 
-  <header>
-    <div class="logo">
-      <div class="logo-mark"></div>
-      <span class="logo-text">Cinema <span>Admin</span></span>
-    </div>
-    <div class="header-actions">
-      <button class="btn btn-ghost" onclick="previewSite()">Preview Site</button>
-      <button class="btn btn-primary" onclick="exportJSON()">Export JSON</button>
-    </div>
-  </header>
+<header>
+  <div class="logo">
+    <div class="logo-mark"></div>
+    <span class="logo-text">For <span>Her</span> — Admin</span>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-ghost" onclick="previewSite()">▶ Preview</button>
+    <button class="btn btn-primary" onclick="goExport()">Export JSON</button>
+  </div>
+</header>
 
-  <main>
-    <div class="tab-bar">
-      <button class="tab active" onclick="switchTab('scenes', this)">Scenes</button>
-      <button class="tab" onclick="switchTab('music', this)">Music</button>
-      <button class="tab" onclick="switchTab('export', this)">Export</button>
-    </div>
+<main>
+  <div class="tab-bar">
+    <button class="tab active" onclick="switchTab('slides',this)">Slides</button>
+    <button class="tab" onclick="switchTab('songs',this)">Songs</button>
+    <button class="tab" onclick="switchTab('endcard',this)">End Card</button>
+    <button class="tab" onclick="switchTab('export',this)">Export</button>
+  </div>
 
-    <!-- SCENES TAB -->
-    <div id="tab-scenes" class="tab-content active">
-      <div class="scenes-list" id="scenes-list"></div>
-      <button class="btn-add" onclick="addScene()">+ Add Scene</button>
-    </div>
+  <!-- SLIDES TAB -->
+  <div id="tab-slides" class="tab-content active">
+    <div class="slides-list" id="slides-list"></div>
+    <button class="btn-add" onclick="addSlide()">+ Add Slide</button>
+  </div>
 
-    <!-- MUSIC TAB -->
-    <div id="tab-music" class="tab-content">
-      <div class="music-list" id="music-list"></div>
-      <button class="btn-add" onclick="addTrack()">+ Add Track</button>
-    </div>
+  <!-- SONGS TAB -->
+  <div id="tab-songs" class="tab-content">
+    <div class="songs-list" id="songs-list"></div>
+    <button class="btn-add" onclick="addSong()">+ Add Song</button>
+  </div>
 
-    <!-- EXPORT TAB -->
-    <div id="tab-export" class="tab-content">
-      <div class="export-section">
-        <p class="export-title">Export Content</p>
-        <p class="export-desc">
-          Your scenes and music configuration. Copy this JSON and save it as <strong>content.json</strong> in the same folder as <strong>index.html</strong>.
-        </p>
-        <div class="json-preview" id="json-preview"></div>
-        <div style="display:flex;gap:10px">
-          <button class="btn btn-primary" onclick="downloadJSON()">Download content.json</button>
-          <button class="btn btn-ghost" onclick="copyJSON()">Copy to Clipboard</button>
+  <!-- END CARD TAB -->
+  <div id="tab-endcard" class="tab-content">
+    <div class="endcard-section">
+      <p class="section-title">End Card Text</p>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Pre-title (small caps)</label>
+          <input type="text" id="ec-pre" oninput="updateEndCard('pre',this.value)"/>
+        </div>
+        <div class="form-group">
+          <label>Main Title</label>
+          <input type="text" id="ec-title" oninput="updateEndCard('title',this.value)"/>
+        </div>
+        <div class="form-group">
+          <label>Subtitle</label>
+          <input type="text" id="ec-sub" oninput="updateEndCard('sub',this.value)"/>
+        </div>
+        <div class="form-group">
+          <label>Song Note (bottom line)</label>
+          <input type="text" id="ec-note" oninput="updateEndCard('note',this.value)"/>
         </div>
       </div>
     </div>
-  </main>
+  </div>
 
-  <div class="toast" id="toast"></div>
+  <!-- EXPORT TAB -->
+  <div id="tab-export" class="tab-content">
+    <div class="export-section">
+      <p class="export-title">Export content.json</p>
+      <p class="export-desc">
+        Copy or download this JSON and save as <strong>content.json</strong>
+        in the same folder as <strong>index.html</strong>.
+        The site will load it automatically.
+      </p>
+      <div class="json-preview" id="json-preview"></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="downloadJSON()">⬇ Download content.json</button>
+        <button class="btn btn-ghost" onclick="copyJSON()">Copy to Clipboard</button>
+        <button class="btn btn-ghost" onclick="resetData()">↺ Reset to Defaults</button>
+      </div>
+    </div>
+  </div>
+</main>
 
-  <script>
-    // ==========================================
-    // DATA STORE
-    // ==========================================
-    let data = {
-      scenes: [],
-      music: []
-    };
+<div class="toast" id="toast"></div>
 
-    // Load from localStorage or fetch
-    async function loadData() {
-      const saved = localStorage.getItem('cinemaData');
-      if (saved) {
-        data = JSON.parse(saved);
-      } else {
-        try {
-          const res = await fetch('content.json');
-          data = await res.json();
-        } catch {
-          data = getDefaultData();
-        }
-      }
-      renderAll();
+<script>
+/* =============================================
+   ADMIN ENGINE
+   ============================================= */
+
+// ── DATA STORE ─────────────────────────────
+let data = { songs: [], slides: [], endCard: {} };
+
+async function loadData() {
+  const saved = localStorage.getItem('forHerAdmin');
+  if (saved) {
+    try { data = JSON.parse(saved); }
+    catch { data = getDefaultData(); }
+  } else {
+    try {
+      const res = await fetch('content.json');
+      if (!res.ok) throw new Error();
+      data = await res.json();
+    } catch {
+      data = getDefaultData();
     }
+  }
+  renderAll();
+}
 
-    function save() {
-      localStorage.setItem('cinemaData', JSON.stringify(data));
-    }
+function save() {
+  localStorage.setItem('forHerAdmin', JSON.stringify(data));
+}
 
-    // ==========================================
-    // RENDER SCENES
-    // ==========================================
-    function renderScenes() {
-      const list = document.getElementById('scenes-list');
-      list.innerHTML = '';
+// ── RENDER ALL ──────────────────────────────
+function renderAll() {
+  renderSlides();
+  renderSongs();
+  renderEndCard();
+}
 
-      data.scenes.forEach((s, i) => {
-        const card = document.createElement('div');
-        card.className = 'scene-card';
-        card.dataset.index = i;
+// ══════════════════════════════════════════
+// SLIDES
+// ══════════════════════════════════════════
+function renderSlides() {
+  const list = document.getElementById('slides-list');
+  list.innerHTML = '';
+  (data.slides || []).forEach((s, i) => {
+    const card = document.createElement('div');
+    card.className = 'slide-card';
+    card.dataset.index = i;
 
-        card.innerHTML = `
-          <div class="scene-card-header" onclick="toggleCard(this)">
-            <span class="drag-handle" title="Drag to reorder">⠿</span>
-            <div class="scene-number">${i + 1}</div>
-            <div class="scene-card-title">${s.title || 'Untitled Scene'}</div>
-            <div class="scene-card-meta">${s.duration}s</div>
-            <div class="scene-toggle">▾</div>
-          </div>
-          <div class="scene-card-body">
-            <div class="form-grid">
-              <div class="form-group">
-                <label>Chapter Title</label>
-                <input type="text" value="${e(s.title)}" onchange="updateScene(${i},'title',this.value)" />
-              </div>
-              <div class="form-group">
-                <label>Duration (seconds)</label>
-                <input type="number" min="5" max="60" value="${s.duration}" onchange="updateScene(${i},'duration',+this.value)" />
-              </div>
-              <div class="form-group full">
-                <label>Subtitle Lines (one per line)</label>
-                <textarea onchange="updateSceneLines(${i},this.value)">${(s.lines||[]).join('\n')}</textarea>
-              </div>
-              <div class="form-group full">
-                <label>Image or Video URL</label>
-                <input type="url" value="${e(s.image||'')}" onchange="updateScene(${i},'image',this.value)" placeholder="https://..." />
-              </div>
-              <div class="form-group">
-                <label>Ken Burns Effect</label>
-                <select onchange="updateScene(${i},'kenBurns',this.value)">
-                  ${['zoom-in','zoom-out','pan-right','pan-left'].map(v => `<option value="${v}" ${s.kenBurns===v?'selected':''}>${v}</option>`).join('')}
-                </select>
-              </div>
-              <div class="form-group">
-                <label>Overlay Color (rgba)</label>
-                <input type="text" value="${e(s.overlay||'rgba(0,0,0,0.5)')}" onchange="updateScene(${i},'overlay',this.value)" />
-              </div>
-            </div>
-            <div class="form-footer">
-              <button class="btn btn-danger" onclick="deleteScene(${i})">Delete Scene</button>
-              ${i > 0 ? `<button class="btn btn-ghost" style="padding:6px 14px;font-size:10px" onclick="moveScene(${i},-1)">↑ Move Up</button>` : ''}
-              ${i < data.scenes.length-1 ? `<button class="btn btn-ghost" style="padding:6px 14px;font-size:10px" onclick="moveScene(${i},1)">↓ Move Down</button>` : ''}
-            </div>
-          </div>
-        `;
-        list.appendChild(card);
-      });
-    }
+    const songTitle = data.songs[s.song]
+      ? data.songs[s.song].title
+      : `Song ${(s.song||0)+1}`;
 
-    // ==========================================
-    // RENDER MUSIC
-    // ==========================================
-    function renderMusic() {
-      const list = document.getElementById('music-list');
-      list.innerHTML = '';
+    card.innerHTML = `
+      <div class="slide-card-header" onclick="toggleCard(this)">
+        <span class="drag-handle" title="Drag">⠿</span>
+        <div class="slide-num">${i+1}</div>
+        <div class="slide-card-title">${escHtml(truncate(firstLineText(s),38))}</div>
+        <div class="slide-card-meta">${s.dur/1000|0}s &nbsp;·&nbsp; ${songTitle}</div>
+        <div class="slide-toggle">▾</div>
+      </div>
+      <div class="slide-card-body">
+        <div class="form-grid">
 
-      data.music.forEach((m, i) => {
-        const card = document.createElement('div');
-        card.className = 'track-card';
-        card.innerHTML = `
-          <div class="track-header">
-            <div class="track-icon">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="9" cy="18" r="3"/><circle cx="15" cy="15" r="3"/>
-                <polyline points="12 15 12 3"/><polyline points="18 12 18 3"/>
-              </svg>
-            </div>
-            <div class="track-label">${m.label || 'Track ' + (i+1)}</div>
-            <div class="track-time">Starts at ${m.startAt}s</div>
-            <button class="btn btn-danger" onclick="deleteTrack(${i})">Remove</button>
-          </div>
-          <div class="form-grid">
-            <div class="form-group">
-              <label>Track Label</label>
-              <input type="text" value="${e(m.label||'')}" onchange="updateTrack(${i},'label',this.value)" />
-            </div>
-            <div class="form-group">
-              <label>Start Time (seconds)</label>
-              <input type="number" min="0" value="${m.startAt}" onchange="updateTrack(${i},'startAt',+this.value)" />
-            </div>
-            <div class="form-group full">
-              <label>Audio File URL (mp3/ogg)</label>
-              <input type="url" value="${e(m.url||'')}" onchange="updateTrack(${i},'url',this.value)" placeholder="https://..." />
-            </div>
-            <div class="form-group">
-              <label>Volume (0.0 – 1.0)</label>
-              <input type="number" min="0" max="1" step="0.05" value="${m.volume||0.6}" onchange="updateTrack(${i},'volume',+this.value)" />
+          <!-- IMAGE -->
+          <div class="form-group full">
+            <label>Background Image</label>
+            <div class="img-upload-wrap">
+              <div class="upload-row">
+                <input type="url" id="img-url-${i}" placeholder="https://..."
+                  value="${escAttr(s.img||s.image||'')}"
+                  oninput="updateSlide(${i},'img',this.value);previewImg(${i},this.value)"/>
+                <label class="upload-btn" for="img-file-${i}">📁 Upload</label>
+                <input class="file-input" type="file" id="img-file-${i}"
+                  accept="image/*" onchange="handleImgUpload(${i},this)"/>
+              </div>
+              <img id="img-prev-${i}" class="img-preview"
+                src="${escAttr(s.img||s.image||'')}"
+                onerror="this.classList.remove('show')"
+                onload="this.classList.add('show')"
+                alt="preview"/>
             </div>
           </div>
-        `;
-        list.appendChild(card);
-      });
-    }
 
-    // ==========================================
-    // SCENE ACTIONS
-    // ==========================================
-    function updateScene(i, key, val) {
-      data.scenes[i][key] = val;
-      save();
-    }
+          <!-- POSITION -->
+          <div class="form-group">
+            <label>Text Position</label>
+            <select onchange="updateSlide(${i},'pos',this.value)">
+              ${['pos-bc','pos-bl','pos-br','pos-mc','pos-ml','pos-tc','pos-tr'].map(v=>
+                `<option value="${v}" ${s.pos===v?'selected':''}>${v.replace('pos-','')}</option>`
+              ).join('')}
+            </select>
+          </div>
 
-    function updateSceneLines(i, val) {
-      data.scenes[i].lines = val.split('\n').map(l => l.trim()).filter(Boolean);
-      save();
-    }
+          <!-- KEN BURNS -->
+          <div class="form-group">
+            <label>Ken Burns</label>
+            <select onchange="updateSlide(${i},'kenBurns',this.value)">
+              ${['zoom-in','zoom-out','pan-right','pan-left','drift-up'].map(v=>
+                `<option value="${v}" ${s.kenBurns===v?'selected':''}>${v}</option>`
+              ).join('')}
+            </select>
+          </div>
 
-    function addScene() {
-      data.scenes.push({
-        id: Date.now(),
-        title: 'New Scene',
-        lines: ['Your text here.'],
-        image: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1920&q=80',
-        duration: 12,
-        overlay: 'rgba(0,0,0,0.5)',
-        kenBurns: 'zoom-in'
-      });
-      save();
-      renderScenes();
-      toast('Scene added');
-    }
+          <!-- SONG -->
+          <div class="form-group">
+            <label>Song</label>
+            <select onchange="updateSlide(${i},'song',+this.value)">
+              ${(data.songs||[]).map((sg,si)=>
+                `<option value="${si}" ${s.song===si?'selected':''}>${si+1}. ${escHtml(sg.title||'Song '+si)}</option>`
+              ).join('')}
+            </select>
+          </div>
 
-    function deleteScene(i) {
-      if (!confirm('Delete this scene?')) return;
-      data.scenes.splice(i, 1);
-      save();
-      renderScenes();
-      toast('Scene deleted');
-    }
+          <!-- DURATION -->
+          <div class="form-group">
+            <label>Duration (ms)</label>
+            <input type="number" min="3000" max="30000" step="500"
+              value="${s.dur||9000}"
+              onchange="updateSlide(${i},'dur',+this.value)"/>
+          </div>
 
-    function moveScene(i, dir) {
-      const j = i + dir;
-      if (j < 0 || j >= data.scenes.length) return;
-      [data.scenes[i], data.scenes[j]] = [data.scenes[j], data.scenes[i]];
-      save();
-      renderScenes();
-    }
+          <!-- TINT -->
+          <div class="form-group">
+            <label>Tint / Overlay</label>
+            <input type="text" value="${escAttr(s.tint||'rgba(0,0,0,0.28)')}"
+              onchange="updateSlide(${i},'tint',this.value)"
+              placeholder="rgba(r,g,b,a)"/>
+          </div>
 
-    // ==========================================
-    // MUSIC ACTIONS
-    // ==========================================
-    function updateTrack(i, key, val) {
-      data.music[i][key] = val;
-      save();
-    }
+          <!-- LYRIC LINES -->
+          <div class="form-group full">
+            <label>Lyric Lines</label>
+            <div class="lines-editor" id="lines-editor-${i}">
+              ${renderLineRows(i, s.lines||[])}
+            </div>
+            <button class="add-line-btn" onclick="addLine(${i})">+ Add Line</button>
+          </div>
 
-    function addTrack() {
-      data.music.push({
-        id: Date.now(),
-        label: 'New Track',
-        url: '',
-        startAt: 0,
-        volume: 0.6
-      });
-      save();
-      renderMusic();
-      toast('Track added');
-    }
+        </div>
+        <div class="form-footer">
+          <button class="btn btn-danger" onclick="deleteSlide(${i})">Delete</button>
+          ${i>0?`<button class="btn btn-ghost" style="padding:6px 14px;font-size:10px"
+            onclick="moveSlide(${i},-1)">↑ Up</button>`:''}
+          ${i<(data.slides.length-1)?`<button class="btn btn-ghost" style="padding:6px 14px;font-size:10px"
+            onclick="moveSlide(${i},1)">↓ Down</button>`:''}
+          <button class="btn btn-ghost" style="padding:6px 14px;font-size:10px"
+            onclick="duplicateSlide(${i})">⧉ Duplicate</button>
+        </div>
+      </div>`;
+    list.appendChild(card);
+  });
+}
 
-    function deleteTrack(i) {
-      data.music.splice(i, 1);
-      save();
-      renderMusic();
-      toast('Track removed');
-    }
+function renderLineRows(slideIdx, lines) {
+  return lines.map((ln, li) => `
+    <div class="line-row" id="line-row-${slideIdx}-${li}">
+      <input type="text" value="${escAttr(ln.text||'')}"
+        oninput="updateLine(${slideIdx},${li},'text',this.value)"
+        placeholder="Lyric text…"/>
+      <select onchange="updateLine(${slideIdx},${li},'color',this.value)" title="Color">
+        ${['','gold','rose','blue'].map(c=>
+          `<option value="${c}" ${(ln.color||'')===c?'selected':''}>${c||'default'}</option>`
+        ).join('')}
+      </select>
+      <select onchange="updateLine(${slideIdx},${li},'size',this.value)" title="Size">
+        ${['','big','sm'].map(sz=>
+          `<option value="${sz}" ${(ln.size||'')===sz?'selected':''}>${sz||'normal'}</option>`
+        ).join('')}
+      </select>
+      <select onchange="updateLine(${slideIdx},${li},'style',this.value)" title="Style">
+        ${['','caps','sm'].map(st=>
+          `<option value="${st}" ${(ln.style||'')===st?'selected':''}>${st||'italic'}</option>`
+        ).join('')}
+      </select>
+      <select onchange="updateLine(${slideIdx},${li},'delay',this.value)" title="Delay">
+        ${[1,2,3,4].map(d=>
+          `<option value="${d}" ${(ln.delay||1)==d?'selected':''}>d${d}</option>`
+        ).join('')}
+      </select>
+      <button class="btn btn-danger" onclick="deleteLine(${slideIdx},${li})">✕</button>
+    </div>`).join('');
+}
 
-    // ==========================================
-    // EXPORT / JSON
-    // ==========================================
-    function getJSON() {
-      return JSON.stringify(data, null, 2);
-    }
+// ── SLIDE ACTIONS ───────────────────────────
+function updateSlide(i, key, val) {
+  data.slides[i][key] = val;
+  save();
+  if (key === 'song') renderSlides(); // refresh song label in header
+}
 
-    function exportJSON() {
-      switchTabByName('export');
-      renderJSON();
-    }
+function updateLine(slideIdx, lineIdx, key, val) {
+  if (!data.slides[slideIdx].lines) data.slides[slideIdx].lines = [];
+  if (!data.slides[slideIdx].lines[lineIdx]) data.slides[slideIdx].lines[lineIdx] = {};
+  data.slides[slideIdx].lines[lineIdx][key] = val;
+  save();
+}
 
-    function renderJSON() {
-      document.getElementById('json-preview').textContent = getJSON();
-    }
+function addLine(slideIdx) {
+  if (!data.slides[slideIdx].lines) data.slides[slideIdx].lines = [];
+  data.slides[slideIdx].lines.push({ text: '', delay: data.slides[slideIdx].lines.length + 1 });
+  save();
+  renderSlides();
+  // Reopen the card
+  setTimeout(() => {
+    const card = document.querySelector(`[data-index="${slideIdx}"]`);
+    if (card) card.classList.add('open');
+  }, 10);
+}
 
-    function downloadJSON() {
-      const blob = new Blob([getJSON()], { type: 'application/json' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'content.json';
-      a.click();
-      toast('Downloaded content.json');
-    }
+function deleteLine(slideIdx, lineIdx) {
+  data.slides[slideIdx].lines.splice(lineIdx, 1);
+  save();
+  renderSlides();
+  setTimeout(() => {
+    const card = document.querySelector(`[data-index="${slideIdx}"]`);
+    if (card) card.classList.add('open');
+  }, 10);
+}
 
-    function copyJSON() {
-      navigator.clipboard.writeText(getJSON()).then(() => toast('Copied to clipboard!'));
-    }
+function addSlide() {
+  data.slides.push({
+    img: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1600&q=85',
+    tint: 'rgba(5,5,20,0.35)', kenBurns: 'zoom-in',
+    pos: 'pos-bc', song: 0, dur: 9000,
+    lines: [{ text: 'New lyric line.', delay: 1, color: 'gold' }]
+  });
+  save(); renderSlides();
+  toast('Slide added');
+  setTimeout(() => {
+    const cards = document.querySelectorAll('.slide-card');
+    const last = cards[cards.length - 1];
+    if (last) { last.classList.add('open'); last.scrollIntoView({ behavior:'smooth' }); }
+  }, 50);
+}
 
-    // ==========================================
-    // UI HELPERS
-    // ==========================================
-    function toggleCard(header) {
-      header.parentElement.classList.toggle('open');
-    }
+function deleteSlide(i) {
+  if (!confirm(`Delete slide ${i+1}?`)) return;
+  data.slides.splice(i, 1);
+  save(); renderSlides(); toast('Slide deleted');
+}
 
-    function switchTab(name, btn) {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById('tab-' + name).classList.add('active');
-      if (name === 'export') renderJSON();
-    }
+function moveSlide(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= data.slides.length) return;
+  [data.slides[i], data.slides[j]] = [data.slides[j], data.slides[i]];
+  save(); renderSlides(); toast(`Slide moved ${dir > 0 ? 'down' : 'up'}`);
+}
 
-    function switchTabByName(name) {
-      const tabs = document.querySelectorAll('.tab');
-      tabs.forEach(t => {
-        if (t.textContent.toLowerCase().includes(name)) {
-          t.click();
-        }
-      });
-    }
+function duplicateSlide(i) {
+  const copy = JSON.parse(JSON.stringify(data.slides[i]));
+  data.slides.splice(i + 1, 0, copy);
+  save(); renderSlides(); toast('Slide duplicated');
+}
 
-    function previewSite() {
-      window.open('index.html', '_blank');
-    }
+// ── IMAGE UPLOAD ─────────────────────────────
+function handleImgUpload(slideIdx, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const dataUrl = e.target.result;
+    data.slides[slideIdx].img = dataUrl;
+    save();
+    // Update URL input display
+    const urlInput = document.getElementById(`img-url-${slideIdx}`);
+    if (urlInput) urlInput.value = '(local upload)';
+    previewImg(slideIdx, dataUrl);
+    toast('Image uploaded ✓');
+  };
+  reader.readAsDataURL(file);
+}
 
-    function toast(msg) {
-      const t = document.getElementById('toast');
-      t.textContent = msg;
-      t.classList.add('show');
-      setTimeout(() => t.classList.remove('show'), 2500);
-    }
+function previewImg(slideIdx, src) {
+  const prev = document.getElementById(`img-prev-${slideIdx}`);
+  if (!prev) return;
+  prev.src = src;
+  if (src && src.length > 5) {
+    prev.classList.add('show');
+  } else {
+    prev.classList.remove('show');
+  }
+}
 
-    function e(str) {
-      return String(str).replace(/"/g, '&quot;').replace(/</g, '&lt;');
-    }
+// ══════════════════════════════════════════
+// SONGS
+// ══════════════════════════════════════════
+function renderSongs() {
+  const list = document.getElementById('songs-list');
+  list.innerHTML = '';
+  (data.songs || []).forEach((s, i) => {
+    const card = document.createElement('div');
+    card.className = 'song-card';
+    card.innerHTML = `
+      <div class="song-header">
+        <div class="song-icon">♪</div>
+        <div class="song-label">${escHtml(s.title || 'Song ' + (i+1))}</div>
+        <div class="song-badge">Song ${i+1}</div>
+        <button class="btn btn-danger" onclick="deleteSong(${i})">Remove</button>
+      </div>
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Song Title (shown in film strip)</label>
+          <input type="text" value="${escAttr(s.title||'')}"
+            oninput="updateSong(${i},'title',this.value)"/>
+        </div>
+        <div class="form-group">
+          <label>YouTube Video ID</label>
+          <input type="text" value="${escAttr(s.ytId||'')}"
+            oninput="updateSong(${i},'ytId',this.value)"
+            placeholder="e.g. N3vQBQ3XPCY"/>
+        </div>
+        <div class="form-group">
+          <label>Start At (seconds)</label>
+          <input type="number" min="0" max="600" value="${s.start||0}"
+            onchange="updateSong(${i},'start',+this.value)"/>
+        </div>
+      </div>`;
+    list.appendChild(card);
+  });
+}
 
-    function renderAll() {
-      renderScenes();
-      renderMusic();
-    }
+function updateSong(i, key, val) {
+  data.songs[i][key] = val;
+  save();
+}
 
-    // ==========================================
-    // DEFAULT DATA
-    // ==========================================
-    function getDefaultData() {
-      return {
-        scenes: [
-          { id: 1, title: "Childhood", lines: ["Before the world had a name for her…", "she was already learning how to hold light."], image: "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=1920&q=80", duration: 15, overlay: "rgba(10,5,0,0.45)", kenBurns: "zoom-in" },
-          { id: 2, title: "Growing Up", lines: ["Somewhere between then and now,", "she stopped being a child — quietly, gracefully."], image: "https://images.unsplash.com/photo-1504203700686-f21e703e5f1c?w=1920&q=80", duration: 15, overlay: "rgba(5,10,20,0.5)", kenBurns: "zoom-out" },
-          { id: 3, title: "Personality", lines: ["She doesn't ask for attention.", "She just walks in — and the room shifts."], image: "https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=1920&q=80", duration: 15, overlay: "rgba(0,10,15,0.5)", kenBurns: "pan-right" },
-          { id: 4, title: "Shared Memories", lines: ["Some moments don't need photographs.", "They live in the pause between words."], image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80", duration: 20, overlay: "rgba(5,5,15,0.55)", kenBurns: "pan-left" },
-          { id: 5, title: "Distance", lines: ["Things change.", "And yet, some people stay — in their own quiet way."], image: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1920&q=80", duration: 20, overlay: "rgba(0,0,5,0.6)", kenBurns: "zoom-in" },
-          { id: 6, title: "Present", lines: ["Today, on your birthday —", "this is for you. Just you."], image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920&q=80", duration: 20, overlay: "rgba(5,0,10,0.5)", kenBurns: "zoom-out" }
-        ],
-        music: [
-          { id: 1, label: "Intro Instrumental", url: "", startAt: 0, volume: 0.6 },
-          { id: 2, label: "Hindi Nostalgic", url: "", startAt: 15, volume: 0.7 },
-          { id: 3, label: "Hindi Emotional", url: "", startAt: 35, volume: 0.65 },
-          { id: 4, label: "English Reflective", url: "", startAt: 55, volume: 0.6 },
-          { id: 5, label: "Soft Closure", url: "", startAt: 75, volume: 0.5 }
+function addSong() {
+  data.songs.push({ title: 'New Song', ytId: '', start: 0 });
+  save(); renderSongs(); renderSlides(); toast('Song added');
+}
+
+function deleteSong(i) {
+  if (!confirm(`Remove Song ${i+1}? Slides using it will default to Song 0.`)) return;
+  data.songs.splice(i, 1);
+  // Clamp slide song indices
+  data.slides.forEach(sl => {
+    if (sl.song >= data.songs.length) sl.song = Math.max(0, data.songs.length - 1);
+  });
+  save(); renderSongs(); renderSlides(); toast('Song removed');
+}
+
+// ══════════════════════════════════════════
+// END CARD
+// ══════════════════════════════════════════
+function renderEndCard() {
+  const ec = data.endCard || {};
+  setValue('ec-pre',   ec.pre   || '');
+  setValue('ec-title', ec.title || '');
+  setValue('ec-sub',   ec.sub   || '');
+  setValue('ec-note',  ec.note  || '');
+}
+
+function updateEndCard(key, val) {
+  if (!data.endCard) data.endCard = {};
+  data.endCard[key] = val;
+  save();
+}
+
+function setValue(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.value = val;
+}
+
+// ══════════════════════════════════════════
+// EXPORT
+// ══════════════════════════════════════════
+function getJSON() { return JSON.stringify(data, null, 2); }
+
+function renderJSONPreview() {
+  document.getElementById('json-preview').textContent = getJSON();
+}
+
+function downloadJSON() {
+  const blob = new Blob([getJSON()], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'content.json';
+  a.click();
+  toast('Downloaded content.json ✓');
+}
+
+function copyJSON() {
+  navigator.clipboard.writeText(getJSON())
+    .then(() => toast('Copied to clipboard! ✓'))
+    .catch(() => toast('Copy failed — try selecting manually'));
+}
+
+function resetData() {
+  if (!confirm('Reset all data to defaults? This cannot be undone.')) return;
+  localStorage.removeItem('forHerAdmin');
+  data = getDefaultData();
+  save(); renderAll(); toast('Reset to defaults');
+}
+
+function goExport() {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelector('[onclick*="export"]').classList.add('active');
+  document.getElementById('tab-export').classList.add('active');
+  renderJSONPreview();
+}
+
+// ══════════════════════════════════════════
+// UI HELPERS
+// ══════════════════════════════════════════
+function toggleCard(header) {
+  header.parentElement.classList.toggle('open');
+}
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'export') renderJSONPreview();
+}
+
+function previewSite() {
+  window.open('index.html', '_blank');
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function escAttr(str) { return String(str).replace(/"/g,'&quot;'); }
+
+function truncate(str, n) {
+  return str.length > n ? str.slice(0, n) + '…' : str;
+}
+
+function firstLineText(slide) {
+  return (slide.lines && slide.lines[0] && slide.lines[0].text)
+    ? slide.lines[0].text
+    : 'Slide';
+}
+
+// ══════════════════════════════════════════
+// DEFAULT DATA
+// ══════════════════════════════════════════
+function getDefaultData() {
+  return {
+    songs: [
+      { title: "Kasoor — Prateek Kuhad",      ytId: "N3vQBQ3XPCY", start: 30 },
+      { title: "Baarishein — Atif Aslam",      ytId: "ixrSQoJ57WM", start: 15 },
+      { title: "Tum Hi Ho — Arijit Singh",     ytId: "Umqb9KENgmk", start: 10 },
+      { title: "Tera Yaar Hoon Main — Arijit", ytId: "f0Z1dOOzN5E", start: 12 },
+      { title: "Khairiyat — Arijit Singh",     ytId: "dBgtCsrR4xU", start: 18 }
+    ],
+    slides: [
+      {
+        img:"https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=1600&q=85",
+        tint:"rgba(40,20,8,0.32)",kenBurns:"zoom-in",pos:"pos-bc",song:0,dur:9000,
+        lines:[
+          {text:"There are people you meet",delay:1},
+          {text:"and the world quietly shifts.",delay:2,color:"gold"}
         ]
-      };
+      },
+      {
+        img:"https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=1600&q=85",
+        tint:"rgba(30,12,5,0.3)",kenBurns:"pan-right",pos:"pos-bl",song:0,dur:9000,
+        lines:[{text:"She was one of them.",delay:1,size:"big",color:"gold"}]
+      },
+      {
+        img:"https://images.unsplash.com/photo-1531306728370-e2ebd9d7bb99?w=1600&q=85",
+        tint:"rgba(20,10,20,0.28)",kenBurns:"zoom-out",pos:"pos-mc",song:0,dur:10000,
+        lines:[
+          {text:"Kuch toh tha,",delay:1,color:"gold"},
+          {text:"jo aaँkhon ne bola,",delay:2},
+          {text:"jo lafzon ne nahi.",delay:3,color:"rose"}
+        ]
+      },
+      {
+        img:"https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=1600&q=85",
+        tint:"rgba(10,5,25,0.3)",kenBurns:"pan-left",pos:"pos-tr",song:0,dur:9000,
+        lines:[
+          {text:"The kind of person",delay:1,style:"sm"},
+          {text:"you remember",delay:2},
+          {text:"on ordinary days.",delay:3,color:"rose"}
+        ]
+      },
+      {
+        img:"https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=1600&q=85",
+        tint:"rgba(30,10,5,0.28)",kenBurns:"drift-up",pos:"pos-bc",song:0,dur:9000,
+        lines:[
+          {text:"Kasoor tera nahi.",delay:1,size:"big",color:"gold"},
+          {text:"Aur mera bhi nahi.",delay:2}
+        ]
+      },
+      {
+        img:"https://images.unsplash.com/photo-1519692933481-e162a57d6721?w=1600&q=85",
+        tint:"rgba(5,15,32,0.38)",kenBurns:"zoom-in",pos:"pos-bc",song:1,dur:9500,
+        lines:[
+          {text:"Baarish jab bhi ho —",delay:1,color:"blue"},
+          {text:"teri yaad aati hai.",delay:2}
+        ]
+      },
+      {
+        img:"https://images.unsplash.com/photo-1534274988757-a28bf1a57c17?w=1600&q=85",
+        tint:"rgba(5,18,35,0.35)",kenBurns:"drift-up",pos:"pos-ml",song:1,dur:9000,
+        lines:[
+          {text:"Some feelings",delay:1,style:"caps"},
+          {text:"don't have names.",delay:2,size:"big"},
+          {text:"They just live.",delay:3,color:"blue"}
+        ]
+      },
+      {
+        img:"https://images.unsplash.com/photo-1473621038790-b778b4750efe?w=1600&q=85",
+        tint:"rgba(8,12,30,0.38)",kenBurns:"pan-right",pos:"pos-tc",song:1,dur:9500,
+        lines:[
+          {text:"Jo dil mein tha —",delay:1},
+          {text:"woh kabhi keh nahi paaye.",delay:2,color:"rose"}
+        ]
+      },
+      {
+        img:"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1600&q=85",
+        tint:"rgba(5,10,28,0.35)",kenBurns:"zoom-out",pos:"pos-bc",song:1,dur:9000,
+        lines:[
+          {text:"And still —",delay:1,style:"sm"},
+          {text:"she stayed.",delay:2,size:"big",color:"blue"},
+          {text:"Like rain that never felt like sadness.",delay:3}
+        ]
+      },
+      {
+        img:"https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=85",
+        tint:"rgba(5,8,25,0.32)",kenBurns:"pan-left",pos:"pos-br",song:1,dur:9000,
+        lines:[
+          {text:"Baarishein thi,",delay:1,color:"blue"},
+          {text:"aur tum bhi.",delay:2,color:"gold"}
+        ]
+      },
+      {
+        img:"https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1600&q=85",
+        tint:"rgba(30,8,5,0.28)",kenBurns:"zoom-in",pos:"pos-mc",song:2,dur:10000,
+        lines:[{text:"Tum hi ho.",delay:1,size:"big",color:"gold"}]
+      },
+      {
+        img:"https://images.unsplash.com/photo-1454496522488-7a8e488e8606?w=1600&q=85",
+        tint:"rgba(22,8,5,0.28)",kenBurns:"pan-left",pos:"pos-bl",song:2,dur:9000,
+        lines:[
+          {text:"Har ek lamhe mein,",delay:1},
+          {text:"sirf tum.",delay:2,size:"big",color:"gold"}
+        ]
+      },
+      {
+        img:"https://images.unsplash.com/photo-1474631245212-32dc3c8310c6?w=1600&q=85",
+        tint:"rgba(18,6,4,0.3)",kenBurns:"drift-up",pos:"pos-tc",song:2,dur:9500,
+        lines:[
+          {text:"There is something rare",delay:1,style:"sm"},
+          {text:"about a person who makes",delay:2},
+          {text:"the world feel like home.",delay:3,color:"gold"}
+        ]
+      },
+      {
+        img:"https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=1600&q=85",
+        tint:"rgba(25,8,4,0.28)",kenBurns:"pan-right",pos:"pos-bc",song:2,dur:9000,
+        lines:[
+          {text:"Ab tere bina kya nahi —",delay:1,color:"rose"},
+          {text:"yeh dil jaanta hai.",delay:2}
+        ]
+      },
+      {
+        img:"https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1600&q=85",
+        tint:"rgba(28,15,0,0.25)",kenBurns:"zoom-out",pos:"pos-tc",song:3,dur:9000,
+        lines:[
+          {text:"Tera yaar hoon main.",delay:1,size:"big",color:"gold"},
+          {text:"Sada ke liye.",delay:2}
+        ]
+      },
+      {
+        img:"https://images.unsplash.com/photo-1524117074681-31bd4de22ad3?w=1600&q=85",
+        tint:"rgba(30,18,0,0.26)",kenBurns:"pan-right",pos:"pos-bl",song:3,dur:9000,
+        lines:[
+          {text:"The laughs that made",delay:1},
+          {text:"everything okay.",delay:2,color:"gold"}
+        ]
+      },
+      {
+        img:"https://images.unsplash.com/photo-1504196606672-aef5c9cefc92?w=1600&q=85",
+        tint:"rgba(22,12,0,0.26)",kenBurns:"pan-left",pos:"pos-mc",song:3,dur:9500,
+        lines:[
+          {text:"Woh waqt,",delay:1},
+          {text:"jo kabhi lautega nahi —",delay:2},
+          {text:"par dil mein hai.",delay:3,color:"gold"}
+        ]
+      },
+      {
+        img:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1600&q=85",
+        tint:"rgba(20,10,0,0.28)",kenBurns:"zoom-in",pos:"pos-tr",song:3,dur:9000,
+        lines:[
+          {text:"Saath nibhaana,",delay:1,color:"gold"},
+          {text:"yeh waada mera.",delay:2}
+        ]
+      },
+      {
+        img:"https://images.unsplash.com/photo-1500622944204-b135684e99fd?w=1600&q=85",
+        tint:"rgba(5,5,22,0.33)",kenBurns:"drift-up",pos:"pos-bc",song:4,dur:9500,
+        lines:[
+          {text:"Khairiyat pooch,",delay:1,color:"blue"},
+          {text:"kabhi toh khairiyat pooch.",delay:2}
+        ]
+      },
+      {
+        img:"https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1600&q=85",
+        tint:"rgba(5,5,22,0.32)",kenBurns:"pan-left",pos:"pos-ml",song:4,dur:9500,
+        lines:[
+          {text:"Distance changes nothing",delay:1},
+          {text:"that was ever real.",delay:2,color:"rose"}
+        ]
+      },
+      {
+        img:"https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=1600&q=85",
+        tint:"rgba(8,5,20,0.35)",kenBurns:"zoom-in",pos:"pos-bc",song:4,dur:10000,
+        lines:[
+          {text:"And today —",delay:1,style:"caps"},
+          {text:"on your birthday,",delay:2,size:"big",color:"gold"},
+          {text:"I just want you to feel it all.",delay:3}
+        ]
+      },
+      {
+        img:"https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1600&q=85",
+        tint:"rgba(5,0,18,0.35)",kenBurns:"zoom-out",pos:"pos-mc",song:4,dur:13000,
+        lines:[
+          {text:"Happy Birthday.",delay:1,size:"big",color:"gold"},
+          {text:"You deserve every beautiful thing.",delay:2},
+          {text:"Every single one.",delay:3,color:"rose"}
+        ]
+      }
+    ],
+    endCard: {
+      pre:   "With everything",
+      title: "Happy Birthday.",
+      sub:   "Always yours to keep.",
+      note:  "Kasoor · Baarishein · Tum Hi Ho · Tera Yaar Hoon Main · Khairiyat"
     }
+  };
+}
 
-    // INIT
-    loadData();
-  </script>
+// INIT
+loadData();
+</script>
 </body>
 </html>
