@@ -1,71 +1,87 @@
 let data;
-let currentMusic = "";
+let sceneIndex = 0;
+let startTime = 0;
+
 const audio = document.getElementById("audio");
+const sceneDiv = document.getElementById("scene");
+const textDiv = document.getElementById("text");
+const progress = document.getElementById("progress");
 
 fetch("content.json")
-  .then(res => res.json())
-  .then(json => data = json);
+.then(res => res.json())
+.then(json => data = json);
 
-function start() {
+function start(skip=false) {
   document.getElementById("intro").style.display = "none";
-  loadScenes();
-  setTimeout(autoScroll, 1500);
+  startTime = Date.now();
+  if(skip) sceneIndex = 2;
+  playScene();
 }
 
-function loadScenes() {
-  const app = document.getElementById("app");
+/* MAIN PLAYER */
+function playScene() {
+  if (sceneIndex >= data.scenes.length) return;
 
-  data.scenes.forEach((scene, index) => {
+  const scene = data.scenes[sceneIndex];
 
-    const sec = document.createElement("div");
-    sec.className = "scene";
+  // background change
+  sceneDiv.style.backgroundImage =
+    `url(${scene.image}), url(https://picsum.photos/1920/1080?random=${sceneIndex})`;
 
-    sec.style.backgroundImage =
-      `url(${scene.image}), url(https://picsum.photos/1920/1080?random=${index})`;
+  // text animation
+  textDiv.style.opacity = 0;
+  textDiv.innerText = scene.text;
 
-    sec.innerHTML = `<div class="text">${scene.text}</div>`;
+  setTimeout(() => {
+    textDiv.style.transition = "all 1s ease";
+    textDiv.style.opacity = 1;
+    textDiv.style.transform = "translateY(0)";
+  }, 500);
 
-    sec.onmouseenter = () => playMusic(index);
+  playMusic();
 
-    app.appendChild(sec);
-  });
+  animateProgress(scene.duration);
+
+  setTimeout(() => {
+    sceneIndex++;
+    playScene();
+  }, scene.duration * 1000);
 }
 
-/* AUTO SCROLL */
-let i = 0;
-function autoScroll() {
-  const scenes = document.querySelectorAll(".scene");
+/* MUSIC CONTROL */
+function playMusic() {
+  const elapsed = (Date.now() - startTime) / 1000;
 
-  if (i < scenes.length) {
-    scenes[i].scrollIntoView({ behavior: "smooth" });
-    playMusic(i);
-    i++;
-    setTimeout(autoScroll, 4000);
-  }
-}
+  const track = data.music.find(m => m.start <= elapsed);
 
-/* MUSIC SYSTEM */
-function playMusic(sceneIndex) {
-  const track = data.music.find(m => m.startScene === sceneIndex);
-
-  if (track && currentMusic !== track.file) {
+  if (track && audio.src !== track.file) {
     fadeOut(() => {
       audio.src = track.file;
       audio.play();
       fadeIn();
-      currentMusic = track.file;
     });
   }
 }
 
-/* FADE EFFECT */
-function fadeOut(callback) {
+/* PROGRESS BAR */
+function animateProgress(duration) {
+  progress.style.transition = "none";
+  progress.style.width = "0%";
+
+  setTimeout(() => {
+    progress.style.transition = `width ${duration}s linear`;
+    progress.style.width = "100%";
+  }, 50);
+}
+
+/* AUDIO FADE */
+function fadeOut(cb) {
   let fade = setInterval(() => {
     if (audio.volume > 0.05) {
       audio.volume -= 0.05;
     } else {
       clearInterval(fade);
-      callback();
+      cb();
     }
   }, 100);
 }
