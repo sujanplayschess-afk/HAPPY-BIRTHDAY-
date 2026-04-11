@@ -1,74 +1,774 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Cinematic Biography</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0d12;
+      --surface: #141418;
+      --surface2: #1a1a21;
+      --border: rgba(255,255,255,0.07);
+      --gold: #c8a96e;
+      --gold-faint: rgba(200,169,110,0.08);
+      --white: #e8e4dc;
+      --dim: rgba(232,228,220,0.5);
+      --danger: #c0504a;
+      --success: #4a9c6e;
+      --font: 'Jost', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: var(--font);
+      font-weight: 300;
+      min-height: 100vh;
+      padding-bottom: 80px;
+    }
+
+    /* ---- HEADER ---- */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 32px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      z-index: 100;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-mark {
+      width: 28px;
+      height: 28px;
+      border: 1px solid var(--gold);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-mark::before {
+      content: '';
+      width: 6px;
+      height: 8px;
+      border-left: 6px solid var(--gold);
+      border-top: 4px solid transparent;
+      border-bottom: 4px solid transparent;
+    }
+
+    .logo-text {
+      font-size: 13px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--white);
+      font-weight: 300;
+    }
+
+    .logo-text span { color: var(--gold); }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    /* ---- BUTTONS ---- */
+    .btn {
+      padding: 9px 20px;
+      font-family: var(--font);
+      font-weight: 300;
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      border: none;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+
+    .btn-primary {
+      background: var(--gold);
+      color: #0d0d12;
+      font-weight: 500;
+    }
+    .btn-primary:hover { filter: brightness(1.1); }
+
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--dim);
+    }
+    .btn-ghost:hover { border-color: var(--gold); color: var(--gold); }
+
+    .btn-danger {
+      background: transparent;
+      border: 1px solid rgba(192,80,74,0.3);
+      color: var(--danger);
+      padding: 6px 14px;
+      font-size: 10px;
+    }
+    .btn-danger:hover { background: rgba(192,80,74,0.1); }
+
+    .btn-add {
+      background: var(--gold-faint);
+      border: 1px dashed rgba(200,169,110,0.3);
+      color: var(--gold);
+      width: 100%;
+      padding: 12px;
+      margin-top: 12px;
+      border-radius: 2px;
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+    .btn-add:hover { background: rgba(200,169,110,0.12); }
+
+    /* ---- LAYOUT ---- */
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    .tab-bar {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 32px;
+    }
+
+    .tab {
+      padding: 12px 24px;
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--dim);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.25s;
+      background: none;
+      border-top: none;
+      border-left: none;
+      border-right: none;
+      font-family: var(--font);
+      font-weight: 300;
+    }
+
+    .tab.active {
+      color: var(--gold);
+      border-bottom-color: var(--gold);
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ---- SCENE CARDS ---- */
+    .scenes-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .scene-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .scene-card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 20px;
+      cursor: pointer;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.2s;
+    }
+
+    .scene-card.open .scene-card-header {
+      border-bottom-color: var(--border);
+    }
+
+    .scene-number {
+      width: 28px;
+      height: 28px;
+      border: 1px solid var(--gold);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: var(--gold);
+      flex-shrink: 0;
+    }
+
+    .scene-card-title {
+      flex: 1;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+    }
+
+    .scene-card-meta {
+      font-size: 10px;
+      color: var(--dim);
+      letter-spacing: 0.1em;
+    }
+
+    .scene-toggle {
+      width: 16px;
+      height: 16px;
+      color: var(--dim);
+      transition: transform 0.25s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .scene-card.open .scene-toggle { transform: rotate(180deg); }
+
+    .scene-card-body {
+      display: none;
+      padding: 20px;
+    }
+
+    .scene-card.open .scene-card-body { display: block; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group.full { grid-column: 1 / -1; }
+
+    label {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+
+    input, select, textarea {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      color: var(--white);
+      font-family: var(--font);
+      font-weight: 300;
+      font-size: 13px;
+      padding: 9px 12px;
+      transition: border-color 0.2s;
+      width: 100%;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: rgba(200,169,110,0.4);
+    }
+
+    select option { background: var(--surface2); }
+
+    textarea { resize: vertical; min-height: 70px; }
+
+    .form-footer {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 10px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ---- MUSIC TRACKS ---- */
+    .music-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .track-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 16px 20px;
+    }
+
+    .track-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .track-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--gold-faint);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .track-icon svg { color: var(--gold); }
+    .track-label { flex: 1; font-size: 13px; }
+    .track-time { font-size: 11px; color: var(--gold); letter-spacing: 0.1em; }
+
+    /* ---- EXPORT ---- */
+    .export-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 28px;
+    }
+
+    .export-title {
+      font-size: 12px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 8px;
+    }
+
+    .export-desc {
+      font-size: 13px;
+      color: var(--dim);
+      line-height: 1.7;
+      margin-bottom: 20px;
+    }
+
+    .json-preview {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 16px;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      color: var(--dim);
+      max-height: 220px;
+      overflow: auto;
+      white-space: pre-wrap;
+      margin-bottom: 16px;
+    }
+
+    /* ---- NOTIFICATION ---- */
+    .toast {
+      position: fixed;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--surface2);
+      border: 1px solid rgba(200,169,110,0.3);
+      color: var(--gold);
+      padding: 12px 28px;
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      border-radius: 2px;
+      opacity: 0;
+      transition: all 0.4s ease;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ---- DRAG HANDLE ---- */
+    .drag-handle {
+      cursor: grab;
+      color: var(--dim);
+      padding: 2px 8px 2px 0;
+      font-size: 14px;
+      user-select: none;
+    }
+
+    .drag-handle:active { cursor: grabbing; }
+
+    @media (max-width: 640px) {
+      .form-grid { grid-template-columns: 1fr; }
+      header { padding: 16px 16px; }
+      main { padding: 20px 12px; }
+    }
+  </style>
+</head>
 <body>
 
-<h2>Admin Panel</h2>
+  <header>
+    <div class="logo">
+      <div class="logo-mark"></div>
+      <span class="logo-text">Cinema <span>Admin</span></span>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-ghost" onclick="previewSite()">Preview Site</button>
+      <button class="btn btn-primary" onclick="exportJSON()">Export JSON</button>
+    </div>
+  </header>
 
-<div id="scenes"></div>
-<button onclick="addScene()">Add Scene</button>
+  <main>
+    <div class="tab-bar">
+      <button class="tab active" onclick="switchTab('scenes', this)">Scenes</button>
+      <button class="tab" onclick="switchTab('music', this)">Music</button>
+      <button class="tab" onclick="switchTab('export', this)">Export</button>
+    </div>
 
-<div id="music"></div>
-<button onclick="addMusic()">Add Music</button>
+    <!-- SCENES TAB -->
+    <div id="tab-scenes" class="tab-content active">
+      <div class="scenes-list" id="scenes-list"></div>
+      <button class="btn-add" onclick="addScene()">+ Add Scene</button>
+    </div>
 
-<br><br>
-<button onclick="save()">Save</button>
+    <!-- MUSIC TAB -->
+    <div id="tab-music" class="tab-content">
+      <div class="music-list" id="music-list"></div>
+      <button class="btn-add" onclick="addTrack()">+ Add Track</button>
+    </div>
 
-<script>
-let data;
+    <!-- EXPORT TAB -->
+    <div id="tab-export" class="tab-content">
+      <div class="export-section">
+        <p class="export-title">Export Content</p>
+        <p class="export-desc">
+          Your scenes and music configuration. Copy this JSON and save it as <strong>content.json</strong> in the same folder as <strong>index.html</strong>.
+        </p>
+        <div class="json-preview" id="json-preview"></div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-primary" onclick="downloadJSON()">Download content.json</button>
+          <button class="btn btn-ghost" onclick="copyJSON()">Copy to Clipboard</button>
+        </div>
+      </div>
+    </div>
+  </main>
 
-fetch("content.json")
-.then(res => res.json())
-.then(json => {
-  data = json;
-  render();
-});
+  <div class="toast" id="toast"></div>
 
-function render() {
-  let s = document.getElementById("scenes");
-  let m = document.getElementById("music");
+  <script>
+    // ==========================================
+    // DATA STORE
+    // ==========================================
+    let data = {
+      scenes: [],
+      music: []
+    };
 
-  s.innerHTML = "<h3>Scenes</h3>";
-  m.innerHTML = "<h3>Music</h3>";
+    // Load from localStorage or fetch
+    async function loadData() {
+      const saved = localStorage.getItem('cinemaData');
+      if (saved) {
+        data = JSON.parse(saved);
+      } else {
+        try {
+          const res = await fetch('content.json');
+          data = await res.json();
+        } catch {
+          data = getDefaultData();
+        }
+      }
+      renderAll();
+    }
 
-  data.scenes.forEach((scene,i)=>{
-    s.innerHTML += `
-      <div>
-        <input value="${scene.title}" onchange="updS(${i},'title',this.value)">
-        <input value="${scene.text}" onchange="updS(${i},'text',this.value)">
-        <input value="${scene.image}" onchange="updS(${i},'image',this.value)">
-      </div><hr>`;
-  });
+    function save() {
+      localStorage.setItem('cinemaData', JSON.stringify(data));
+    }
 
-  data.music.forEach((music,i)=>{
-    m.innerHTML += `
-      <div>
-        <input value="${music.file}" onchange="updM(${i},'file',this.value)">
-        <input value="${music.startScene}" onchange="updM(${i},'startScene',this.value)">
-      </div><hr>`;
-  });
-}
+    // ==========================================
+    // RENDER SCENES
+    // ==========================================
+    function renderScenes() {
+      const list = document.getElementById('scenes-list');
+      list.innerHTML = '';
 
-function updS(i,k,v){ data.scenes[i][k]=v; }
-function updM(i,k,v){ data.music[i][k]= (k==="startScene"?Number(v):v); }
+      data.scenes.forEach((s, i) => {
+        const card = document.createElement('div');
+        card.className = 'scene-card';
+        card.dataset.index = i;
 
-function addScene(){
-  data.scenes.push({title:"",text:"",image:""});
-  render();
-}
+        card.innerHTML = `
+          <div class="scene-card-header" onclick="toggleCard(this)">
+            <span class="drag-handle" title="Drag to reorder">⠿</span>
+            <div class="scene-number">${i + 1}</div>
+            <div class="scene-card-title">${s.title || 'Untitled Scene'}</div>
+            <div class="scene-card-meta">${s.duration}s</div>
+            <div class="scene-toggle">▾</div>
+          </div>
+          <div class="scene-card-body">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Chapter Title</label>
+                <input type="text" value="${e(s.title)}" onchange="updateScene(${i},'title',this.value)" />
+              </div>
+              <div class="form-group">
+                <label>Duration (seconds)</label>
+                <input type="number" min="5" max="60" value="${s.duration}" onchange="updateScene(${i},'duration',+this.value)" />
+              </div>
+              <div class="form-group full">
+                <label>Subtitle Lines (one per line)</label>
+                <textarea onchange="updateSceneLines(${i},this.value)">${(s.lines||[]).join('\n')}</textarea>
+              </div>
+              <div class="form-group full">
+                <label>Image or Video URL</label>
+                <input type="url" value="${e(s.image||'')}" onchange="updateScene(${i},'image',this.value)" placeholder="https://..." />
+              </div>
+              <div class="form-group">
+                <label>Ken Burns Effect</label>
+                <select onchange="updateScene(${i},'kenBurns',this.value)">
+                  ${['zoom-in','zoom-out','pan-right','pan-left'].map(v => `<option value="${v}" ${s.kenBurns===v?'selected':''}>${v}</option>`).join('')}
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Overlay Color (rgba)</label>
+                <input type="text" value="${e(s.overlay||'rgba(0,0,0,0.5)')}" onchange="updateScene(${i},'overlay',this.value)" />
+              </div>
+            </div>
+            <div class="form-footer">
+              <button class="btn btn-danger" onclick="deleteScene(${i})">Delete Scene</button>
+              ${i > 0 ? `<button class="btn btn-ghost" style="padding:6px 14px;font-size:10px" onclick="moveScene(${i},-1)">↑ Move Up</button>` : ''}
+              ${i < data.scenes.length-1 ? `<button class="btn btn-ghost" style="padding:6px 14px;font-size:10px" onclick="moveScene(${i},1)">↓ Move Down</button>` : ''}
+            </div>
+          </div>
+        `;
+        list.appendChild(card);
+      });
+    }
 
-function addMusic(){
-  data.music.push({file:"",startScene:0});
-  render();
-}
+    // ==========================================
+    // RENDER MUSIC
+    // ==========================================
+    function renderMusic() {
+      const list = document.getElementById('music-list');
+      list.innerHTML = '';
 
-function save(){
-  const blob = new Blob([JSON.stringify(data,null,2)]);
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "content.json";
-  a.click();
-}
-</script>
+      data.music.forEach((m, i) => {
+        const card = document.createElement('div');
+        card.className = 'track-card';
+        card.innerHTML = `
+          <div class="track-header">
+            <div class="track-icon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="9" cy="18" r="3"/><circle cx="15" cy="15" r="3"/>
+                <polyline points="12 15 12 3"/><polyline points="18 12 18 3"/>
+              </svg>
+            </div>
+            <div class="track-label">${m.label || 'Track ' + (i+1)}</div>
+            <div class="track-time">Starts at ${m.startAt}s</div>
+            <button class="btn btn-danger" onclick="deleteTrack(${i})">Remove</button>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Track Label</label>
+              <input type="text" value="${e(m.label||'')}" onchange="updateTrack(${i},'label',this.value)" />
+            </div>
+            <div class="form-group">
+              <label>Start Time (seconds)</label>
+              <input type="number" min="0" value="${m.startAt}" onchange="updateTrack(${i},'startAt',+this.value)" />
+            </div>
+            <div class="form-group full">
+              <label>Audio File URL (mp3/ogg)</label>
+              <input type="url" value="${e(m.url||'')}" onchange="updateTrack(${i},'url',this.value)" placeholder="https://..." />
+            </div>
+            <div class="form-group">
+              <label>Volume (0.0 – 1.0)</label>
+              <input type="number" min="0" max="1" step="0.05" value="${m.volume||0.6}" onchange="updateTrack(${i},'volume',+this.value)" />
+            </div>
+          </div>
+        `;
+        list.appendChild(card);
+      });
+    }
 
+    // ==========================================
+    // SCENE ACTIONS
+    // ==========================================
+    function updateScene(i, key, val) {
+      data.scenes[i][key] = val;
+      save();
+    }
+
+    function updateSceneLines(i, val) {
+      data.scenes[i].lines = val.split('\n').map(l => l.trim()).filter(Boolean);
+      save();
+    }
+
+    function addScene() {
+      data.scenes.push({
+        id: Date.now(),
+        title: 'New Scene',
+        lines: ['Your text here.'],
+        image: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1920&q=80',
+        duration: 12,
+        overlay: 'rgba(0,0,0,0.5)',
+        kenBurns: 'zoom-in'
+      });
+      save();
+      renderScenes();
+      toast('Scene added');
+    }
+
+    function deleteScene(i) {
+      if (!confirm('Delete this scene?')) return;
+      data.scenes.splice(i, 1);
+      save();
+      renderScenes();
+      toast('Scene deleted');
+    }
+
+    function moveScene(i, dir) {
+      const j = i + dir;
+      if (j < 0 || j >= data.scenes.length) return;
+      [data.scenes[i], data.scenes[j]] = [data.scenes[j], data.scenes[i]];
+      save();
+      renderScenes();
+    }
+
+    // ==========================================
+    // MUSIC ACTIONS
+    // ==========================================
+    function updateTrack(i, key, val) {
+      data.music[i][key] = val;
+      save();
+    }
+
+    function addTrack() {
+      data.music.push({
+        id: Date.now(),
+        label: 'New Track',
+        url: '',
+        startAt: 0,
+        volume: 0.6
+      });
+      save();
+      renderMusic();
+      toast('Track added');
+    }
+
+    function deleteTrack(i) {
+      data.music.splice(i, 1);
+      save();
+      renderMusic();
+      toast('Track removed');
+    }
+
+    // ==========================================
+    // EXPORT / JSON
+    // ==========================================
+    function getJSON() {
+      return JSON.stringify(data, null, 2);
+    }
+
+    function exportJSON() {
+      switchTabByName('export');
+      renderJSON();
+    }
+
+    function renderJSON() {
+      document.getElementById('json-preview').textContent = getJSON();
+    }
+
+    function downloadJSON() {
+      const blob = new Blob([getJSON()], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'content.json';
+      a.click();
+      toast('Downloaded content.json');
+    }
+
+    function copyJSON() {
+      navigator.clipboard.writeText(getJSON()).then(() => toast('Copied to clipboard!'));
+    }
+
+    // ==========================================
+    // UI HELPERS
+    // ==========================================
+    function toggleCard(header) {
+      header.parentElement.classList.toggle('open');
+    }
+
+    function switchTab(name, btn) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + name).classList.add('active');
+      if (name === 'export') renderJSON();
+    }
+
+    function switchTabByName(name) {
+      const tabs = document.querySelectorAll('.tab');
+      tabs.forEach(t => {
+        if (t.textContent.toLowerCase().includes(name)) {
+          t.click();
+        }
+      });
+    }
+
+    function previewSite() {
+      window.open('index.html', '_blank');
+    }
+
+    function toast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    function e(str) {
+      return String(str).replace(/"/g, '&quot;').replace(/</g, '&lt;');
+    }
+
+    function renderAll() {
+      renderScenes();
+      renderMusic();
+    }
+
+    // ==========================================
+    // DEFAULT DATA
+    // ==========================================
+    function getDefaultData() {
+      return {
+        scenes: [
+          { id: 1, title: "Childhood", lines: ["Before the world had a name for her…", "she was already learning how to hold light."], image: "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=1920&q=80", duration: 15, overlay: "rgba(10,5,0,0.45)", kenBurns: "zoom-in" },
+          { id: 2, title: "Growing Up", lines: ["Somewhere between then and now,", "she stopped being a child — quietly, gracefully."], image: "https://images.unsplash.com/photo-1504203700686-f21e703e5f1c?w=1920&q=80", duration: 15, overlay: "rgba(5,10,20,0.5)", kenBurns: "zoom-out" },
+          { id: 3, title: "Personality", lines: ["She doesn't ask for attention.", "She just walks in — and the room shifts."], image: "https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=1920&q=80", duration: 15, overlay: "rgba(0,10,15,0.5)", kenBurns: "pan-right" },
+          { id: 4, title: "Shared Memories", lines: ["Some moments don't need photographs.", "They live in the pause between words."], image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80", duration: 20, overlay: "rgba(5,5,15,0.55)", kenBurns: "pan-left" },
+          { id: 5, title: "Distance", lines: ["Things change.", "And yet, some people stay — in their own quiet way."], image: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1920&q=80", duration: 20, overlay: "rgba(0,0,5,0.6)", kenBurns: "zoom-in" },
+          { id: 6, title: "Present", lines: ["Today, on your birthday —", "this is for you. Just you."], image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920&q=80", duration: 20, overlay: "rgba(5,0,10,0.5)", kenBurns: "zoom-out" }
+        ],
+        music: [
+          { id: 1, label: "Intro Instrumental", url: "", startAt: 0, volume: 0.6 },
+          { id: 2, label: "Hindi Nostalgic", url: "", startAt: 15, volume: 0.7 },
+          { id: 3, label: "Hindi Emotional", url: "", startAt: 35, volume: 0.65 },
+          { id: 4, label: "English Reflective", url: "", startAt: 55, volume: 0.6 },
+          { id: 5, label: "Soft Closure", url: "", startAt: 75, volume: 0.5 }
+        ]
+      };
+    }
+
+    // INIT
+    loadData();
+  </script>
 </body>
 </html>
