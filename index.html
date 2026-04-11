@@ -1,28 +1,66 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Her Story</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Her Story — A Cinematic Biography</title>
+  <link rel="stylesheet" href="style.css" />
+  <meta name="theme-color" content="#050507" />
 </head>
-
 <body>
 
-<div id="intro">
-  <h1>HER</h1>
-  <button onclick="start()">▶ Play</button>
-  <button onclick="start(true)">⏭ Skip Intro</button>
-</div>
+  <!-- ========================================
+       INTRO SCREEN
+       ======================================== -->
+  <div id="intro-screen">
+    <span class="intro-eyebrow">A story in six chapters</span>
+    <h1 class="intro-title">Her Story</h1>
+    <p class="intro-sub">A cinematic biography</p>
+    <div class="intro-divider"></div>
+    <button class="play-btn" id="play-btn">
+      <span class="play-icon"></span>
+      Begin
+    </button>
+  </div>
 
-<div id="progress"></div>
+  <!-- ========================================
+       PROGRESS BAR
+       ======================================== -->
+  <div id="progress-bar-wrap">
+    <div id="progress-bar"></div>
+  </div>
 
-<audio id="audio"></audio>
+  <!-- ========================================
+       SCENE COUNTER
+       ======================================== -->
+  <div id="scene-counter"></div>
 
-<div id="scene">
-  <div class="overlay"></div>
-  <div id="text"></div>
-</div>
+  <!-- ========================================
+       AUDIO INDICATOR
+       ======================================== -->
+  <div id="audio-indicator">
+    <div class="bar"></div>
+    <div class="bar"></div>
+    <div class="bar"></div>
+    <div class="bar"></div>
+    <div class="bar"></div>
+  </div>
 
-<script src="app.js"></script>
+  <!-- ========================================
+       STAGE — scenes injected here by JS
+       ======================================== -->
+  <div id="stage"></div>
 
+  <!-- ========================================
+       END CARD
+       ======================================== -->
+  <div id="end-card">
+    <p class="end-message">Happy Birthday.</p>
+    <div class="end-gold-line"></div>
+    <p class="end-name">with love, always</p>
+    <button class="replay-btn" id="replay-btn">Watch Again</button>
+  </div>
+
+  <script src="app.js"></script>
 </body>
 </html>
