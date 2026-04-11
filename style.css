@@ -1,61 +1,81 @@
 body {
   margin: 0;
-  font-family: Arial;
+  font-family: 'Segoe UI', sans-serif;
   background: black;
   color: white;
   overflow-x: hidden;
 }
 
-/* INTRO */
+/* INTRO SCREEN */
 #intro {
   height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background: black;
+  background: radial-gradient(circle, #111, #000);
 }
 
 #intro h1 {
-  font-size: 4rem;
-  letter-spacing: 10px;
+  font-size: 5rem;
+  letter-spacing: 12px;
+  animation: glow 2s infinite alternate;
+}
+
+@keyframes glow {
+  from { text-shadow: 0 0 10px #fff; }
+  to { text-shadow: 0 0 25px #ff4d6d; }
 }
 
 button {
-  padding: 10px 20px;
+  padding: 12px 30px;
   font-size: 1.2rem;
+  background: #ff4d6d;
+  border: none;
+  color: white;
+  cursor: pointer;
+  border-radius: 8px;
 }
 
-/* SCENES */
+/* SCENE */
 .scene {
   height: 100vh;
   background-size: cover;
   background-position: center;
   display: flex;
-  justify-content: center;
   align-items: flex-end;
+  justify-content: center;
   position: relative;
+  overflow: hidden;
 }
 
-/* DARK OVERLAY */
+/* DARK CINEMATIC OVERLAY */
 .scene::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
 }
 
-/* SUBTITLE */
+/* TEXT */
 .text {
   position: relative;
   z-index: 2;
-  margin-bottom: 10%;
-  font-size: 1.5rem;
-  animation: fadeUp 2s ease;
+  margin-bottom: 8%;
+  font-size: 1.8rem;
+  max-width: 80%;
+  text-align: center;
+  animation: fadeUp 1.5s ease;
 }
 
 /* ANIMATION */
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(30px); }
+  from { opacity: 0; transform: translateY(40px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* ZOOM EFFECT */
+.scene:hover {
+  transform: scale(1.02);
+  transition: 5s ease;
 }
