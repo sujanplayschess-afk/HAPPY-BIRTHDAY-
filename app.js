@@ -9,6 +9,7 @@ fetch("content.json")
 function start() {
   document.getElementById("intro").style.display = "none";
   loadScenes();
+  setTimeout(autoScroll, 1500);
 }
 
 function loadScenes() {
@@ -18,11 +19,11 @@ function loadScenes() {
 
     const sec = document.createElement("div");
     sec.className = "scene";
-    sec.style.backgroundImage = `url(${scene.image})`;
 
-    sec.innerHTML = `
-      <div class="text">${scene.text}</div>
-    `;
+    sec.style.backgroundImage =
+      `url(${scene.image}), url(https://picsum.photos/1920/1080?random=${index})`;
+
+    sec.innerHTML = `<div class="text">${scene.text}</div>`;
 
     sec.onmouseenter = () => playMusic(index);
 
@@ -30,6 +31,20 @@ function loadScenes() {
   });
 }
 
+/* AUTO SCROLL */
+let i = 0;
+function autoScroll() {
+  const scenes = document.querySelectorAll(".scene");
+
+  if (i < scenes.length) {
+    scenes[i].scrollIntoView({ behavior: "smooth" });
+    playMusic(i);
+    i++;
+    setTimeout(autoScroll, 4000);
+  }
+}
+
+/* MUSIC SYSTEM */
 function playMusic(sceneIndex) {
   const track = data.music.find(m => m.startScene === sceneIndex);
 
@@ -43,13 +58,11 @@ function playMusic(sceneIndex) {
   }
 }
 
-/* FADE FUNCTIONS */
+/* FADE EFFECT */
 function fadeOut(callback) {
-  let vol = audio.volume;
   let fade = setInterval(() => {
-    if (vol > 0.05) {
-      vol -= 0.05;
-      audio.volume = vol;
+    if (audio.volume > 0.05) {
+      audio.volume -= 0.05;
     } else {
       clearInterval(fade);
       callback();
