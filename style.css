@@ -1,0 +1,61 @@
+body {
+  margin: 0;
+  font-family: Arial;
+  background: black;
+  color: white;
+  overflow-x: hidden;
+}
+
+/* INTRO */
+#intro {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: black;
+}
+
+#intro h1 {
+  font-size: 4rem;
+  letter-spacing: 10px;
+}
+
+button {
+  padding: 10px 20px;
+  font-size: 1.2rem;
+}
+
+/* SCENES */
+.scene {
+  height: 100vh;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  position: relative;
+}
+
+/* DARK OVERLAY */
+.scene::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+}
+
+/* SUBTITLE */
+.text {
+  position: relative;
+  z-index: 2;
+  margin-bottom: 10%;
+  font-size: 1.5rem;
+  animation: fadeUp 2s ease;
+}
+
+/* ANIMATION */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
