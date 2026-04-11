@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h2>Admin Panel</h2>
+
+<div id="scenes"></div>
+<button onclick="addScene()">Add Scene</button>
+
+<div id="music"></div>
+<button onclick="addMusic()">Add Music</button>
+
+<br><br>
+<button onclick="save()">Save</button>
+
+<script>
+let data;
+
+fetch("content.json")
+.then(res => res.json())
+.then(json => {
+  data = json;
+  render();
+});
+
+function render() {
+  let s = document.getElementById("scenes");
+  let m = document.getElementById("music");
+
+  s.innerHTML = "<h3>Scenes</h3>";
+  m.innerHTML = "<h3>Music</h3>";
+
+  data.scenes.forEach((scene,i)=>{
+    s.innerHTML += `
+      <div>
+        <input value="${scene.title}" onchange="updS(${i},'title',this.value)">
+        <input value="${scene.text}" onchange="updS(${i},'text',this.value)">
+        <input value="${scene.image}" onchange="updS(${i},'image',this.value)">
+      </div>`;
+  });
+
+  data.music.forEach((music,i)=>{
+    m.innerHTML += `
+      <div>
+        <input value="${music.file}" onchange="updM(${i},'file',this.value)">
+        <input value="${music.startScene}" onchange="updM(${i},'startScene',this.value)">
+      </div>`;
+  });
+}
+
+function updS(i,k,v){ data.scenes[i][k]=v; }
+function updM(i,k,v){ data.music[i][k]= (k==="startScene"?Number(v):v); }
+
+function addScene(){
+  data.scenes.push({title:"",text:"",image:""});
+  render();
+}
+
+function addMusic(){
+  data.music.push({file:"",startScene:0});
+  render();
+}
+
+function save(){
+  const blob = new Blob([JSON.stringify(data,null,2)]);
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "content.json";
+  a.click();
+}
+</script>
+
+</body>
+</html>
