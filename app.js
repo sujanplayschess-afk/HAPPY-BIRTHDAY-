@@ -1,369 +1,547 @@
 /* =============================================
-   CINEMATIC BIOGRAPHY — APP ENGINE
+   FOR HER — APP ENGINE
+   Drives index.html: YouTube audio + slide system
    ============================================= */
 
 'use strict';
 
 const App = (() => {
 
-  // ——————————————————————————————
+  // ─────────────────────────────────────────────
   // STATE
-  // ——————————————————————————————
-  let scenes = [];
-  let music = [];
-  let currentScene = -1;
-  let sceneTimer = null;
-  let progressInterval = null;
-  let globalTime = 0;
-  let globalTimerID = null;
-  let audioCtx = null;
-  let currentAudioSource = null;
-  let currentGainNode = null;
-  let nextTrackIndex = 0;
-  let isPlaying = false;
-  let audioBuffers = {};
-  let subtitlePhase = 0;
-  let subtitleTimer = null;
+  // ─────────────────────────────────────────────
+  let SONGS   = [];
+  let SLIDES  = [];
+  let cur     = -1;
+  let stTimer = null;
+  let running = false;
+  let ytPlrs  = {};
+  let ytOk    = false;
+  let activeSng = -1;
 
-  // ——————————————————————————————
+  // ─────────────────────────────────────────────
   // DOM
-  // ——————————————————————————————
-  const $ = id => document.getElementById(id);
-  const introScreen = $('intro-screen');
-  const playBtn = $('play-btn');
-  const stage = $('stage');
-  const progressBar = $('progress-bar');
-  const progressWrap = $('progress-bar-wrap');
-  const sceneCounter = $('scene-counter');
-  const audioIndicator = $('audio-indicator');
-  const endCard = $('end-card');
+  // ─────────────────────────────────────────────
+  const $  = id => document.getElementById(id);
+  let $stage, $pb, $pw, $ctr, $mbars, $slbl, $intro, $ec, $ytc;
 
-  // ——————————————————————————————
+  // ─────────────────────────────────────────────
   // INIT
-  // ——————————————————————————————
+  // ─────────────────────────────────────────────
   async function init() {
+    $stage = $('stage');
+    $pb    = $('pb');
+    $pw    = $('pw');
+    $ctr   = $('ctr');
+    $mbars = $('mbars');
+    $slbl  = $('slbl');
+    $intro = $('intro');
+    $ec    = $('ec');
+    $ytc   = $('ytc');
+
     const data = await loadContent();
-    scenes = data.scenes;
-    music = data.music.sort((a, b) => a.startAt - b.startAt);
+    SONGS  = data.songs  || getFallbackSongs();
+    SLIDES = data.slides || getFallbackSlides();
 
-    buildScenes();
+    buildSlides();
+    loadYT();
 
-    playBtn.addEventListener('click', startExperience);
-    $('replay-btn').addEventListener('click', replay);
+    $('playBtn').addEventListener('click', start);
+    $('replayBtn').addEventListener('click', replay);
+
+    // Keyboard nav
+    document.addEventListener('keydown', e => {
+      if (!running) return;
+      if (e.key === 'ArrowRight' || e.key === ' ') {
+        e.preventDefault();
+        clearTimeout(stTimer);
+        goSlide(cur + 1);
+      }
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        clearTimeout(stTimer);
+        goSlide(Math.max(0, cur - 1));
+      }
+    });
   }
 
+  // ─────────────────────────────────────────────
+  // LOAD CONTENT
+  // ─────────────────────────────────────────────
   async function loadContent() {
     try {
       const res = await fetch('content.json');
+      if (!res.ok) throw new Error('fetch failed');
       return await res.json();
     } catch {
-      // Fallback inline data if fetch fails (e.g. file:// protocol)
-      return getFallbackData();
+      return {
+        songs:  getFallbackSongs(),
+        slides: getFallbackSlides()
+      };
     }
   }
 
-  // ——————————————————————————————
-  // BUILD SCENES IN DOM
-  // ——————————————————————————————
-  function buildScenes() {
-    stage.innerHTML = '';
-    scenes.forEach((s, i) => {
-      const div = document.createElement('div');
-      div.className = 'scene';
-      div.id = `scene-${i}`;
+  // ─────────────────────────────────────────────
+  // BUILD SLIDES IN DOM
+  // ─────────────────────────────────────────────
+  function buildSlides() {
+    $stage.innerHTML = '';
+    SLIDES.forEach((s, i) => {
+      const d = document.createElement('div');
+      d.className = 'slide';
+      d.id = `sl-${i}`;
 
-      const kenClass = {
-        'zoom-in': 'ken-zoom-in',
-        'zoom-out': 'ken-zoom-out',
-        'pan-right': 'ken-pan-right',
-        'pan-left': 'ken-pan-left'
-      }[s.kenBurns] || 'ken-zoom-in';
+      // Ken Burns class map
+      const kbMap = {
+        'zoom-in'  : 'kb-zi',
+        'zoom-out' : 'kb-zo',
+        'pan-right': 'kb-pr',
+        'pan-left' : 'kb-pl',
+        'drift-up' : 'kb-du'
+      };
+      const kbCls = kbMap[s.kenBurns] || 'kb-zi';
 
-      div.innerHTML = `
-        <div class="scene-bg ${kenClass}" style="background-image:url('${s.image}')"></div>
-        <div class="scene-overlay"></div>
-        <div class="scene-overlay-color" style="background:${s.overlay}"></div>
-        <div class="chapter-label">${s.title}</div>
-        <div class="subtitle-wrap" id="subtitle-${i}">
-          ${s.lines.map((line, j) => `<span class="subtitle-line" data-line="${j}">${line}</span>`).join('')}
-        </div>
-      `;
-      stage.appendChild(div);
+      // Build lyric lines HTML
+      const linesHTML = (s.lines || []).map(l => {
+        const cls = [
+          'll',
+          l.delay  ? `d${l.delay}`  : 'd1',
+          l.style  ? l.style        : '',
+          l.size   ? l.size         : '',
+          l.color  ? l.color        : ''
+        ].filter(Boolean).join(' ');
+        return `<span class="${cls}">${escHtml(l.text)}</span>`;
+      }).join('');
+
+      d.innerHTML = `
+        <div class="sbg ${kbCls}" style="background-image:url('${escAttr(s.image)}')"></div>
+        <div class="sovl"></div>
+        <div class="stint" style="background:${escAttr(s.tint || 'rgba(0,0,0,0.28)')}"></div>
+        <div class="lw ${escAttr(s.pos || 'pos-bc')}">
+          ${linesHTML}
+        </div>`;
+
+      $stage.appendChild(d);
     });
   }
 
-  // ——————————————————————————————
-  // START EXPERIENCE
-  // ——————————————————————————————
-  function startExperience() {
-    introScreen.classList.add('fade-out');
-    progressWrap.classList.add('visible');
-    sceneCounter.classList.add('visible');
-    isPlaying = true;
+  // ─────────────────────────────────────────────
+  // GO TO SLIDE
+  // ─────────────────────────────────────────────
+  function goSlide(idx) {
+    if (idx >= SLIDES.length) { showEnd(); return; }
 
-    // Tick global timer
-    globalTime = 0;
-    globalTimerID = setInterval(() => {
-      globalTime += 0.2;
-      checkMusicSchedule();
-    }, 200);
+    const prev = cur;
+    cur = idx;
 
-    // Start with scene 0 after intro fade
-    setTimeout(() => {
-      goToScene(0);
-      initAudioContext();
-    }, 1400);
-  }
-
-  // ——————————————————————————————
-  // SCENE NAVIGATION
-  // ——————————————————————————————
-  function goToScene(index) {
-    if (index >= scenes.length) {
-      showEndCard();
-      return;
-    }
-
-    // Deactivate previous
-    if (currentScene >= 0) {
-      const prev = $(`scene-${currentScene}`);
-      if (prev) {
-        hideSubtitles(currentScene);
-        setTimeout(() => prev.classList.remove('active'), 1600);
+    // Deactivate previous slide
+    if (prev >= 0) {
+      const pe = $(`sl-${prev}`);
+      if (pe) {
+        pe.querySelectorAll('.ll').forEach(l => {
+          l.classList.remove('in');
+          l.classList.add('out');
+        });
+        setTimeout(() => pe.classList.remove('active'), 1500);
       }
     }
 
-    currentScene = index;
-    const scene = scenes[index];
-    const el = $(`scene-${index}`);
+    const el = $(`sl-${idx}`);
 
-    // Reset Ken Burns by cloning bg
-    const oldBg = el.querySelector('.scene-bg');
-    const newBg = oldBg.cloneNode(true);
-    oldBg.parentNode.replaceChild(newBg, oldBg);
+    // Reset Ken Burns by cloning the bg node
+    const ob = el.querySelector('.sbg');
+    if (ob) {
+      const nb = document.createElement('div');
+      nb.className  = ob.className;
+      nb.style.cssText = ob.style.cssText;
+      ob.parentNode.replaceChild(nb, ob);
+    }
 
     el.classList.add('active');
-    updateCounter();
 
-    // Animate progress bar
-    animateProgress(scene.duration);
+    // Animate lyrics in
+    const lls = el.querySelectorAll('.ll');
+    lls.forEach(l => l.classList.remove('out'));
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() =>
+        lls.forEach(l => l.classList.add('in'))
+      )
+    );
 
-    // Show subtitles
-    clearTimeout(subtitleTimer);
-    subtitlePhase = 0;
-    scheduleSubtitles(index);
-
-    // Schedule next scene
-    clearTimeout(sceneTimer);
-    sceneTimer = setTimeout(() => {
-      goToScene(currentScene + 1);
-    }, scene.duration * 1000);
-  }
-
-  // ——————————————————————————————
-  // SUBTITLES
-  // ——————————————————————————————
-  function scheduleSubtitles(sceneIdx) {
-    const lines = document.querySelectorAll(`#subtitle-${sceneIdx} .subtitle-line`);
-    const scene = scenes[sceneIdx];
-    const totalDuration = scene.duration * 1000;
-    const perLine = Math.floor(totalDuration / (lines.length + 1));
-
-    lines.forEach((line, i) => {
-      // Appear staggered
-      setTimeout(() => {
-        line.classList.add('visible');
-      }, perLine * (i + 0.6));
-
-      // Fade out before scene ends
-      setTimeout(() => {
-        line.classList.add('out');
-      }, totalDuration - 1800 + i * 100);
-    });
-  }
-
-  function hideSubtitles(sceneIdx) {
-    const lines = document.querySelectorAll(`#subtitle-${sceneIdx} .subtitle-line`);
-    lines.forEach(line => {
-      line.classList.remove('visible');
-      line.classList.add('out');
-    });
-  }
-
-  // ——————————————————————————————
-  // PROGRESS BAR
-  // ——————————————————————————————
-  function animateProgress(durationSeconds) {
-    clearInterval(progressInterval);
-    progressBar.style.transition = 'none';
-    progressBar.style.width = '0%';
-
-    requestAnimationFrame(() => {
+    // Progress bar
+    const dur = SLIDES[idx].dur || 9000;
+    $pb.style.transition = 'none';
+    $pb.style.width = '0%';
+    requestAnimationFrame(() =>
       requestAnimationFrame(() => {
-        progressBar.style.transition = `width ${durationSeconds}s linear`;
-        progressBar.style.width = '100%';
+        $pb.style.transition = `width ${dur / 1000}s linear`;
+        $pb.style.width = '100%';
+      })
+    );
+
+    // Counter
+    $ctr.textContent =
+      `${String(idx + 1).padStart(2, '0')} / ${String(SLIDES.length).padStart(2, '0')}`;
+
+    // Song switch
+    const sng = SLIDES[idx].song || 0;
+    if (sng !== activeSng) {
+      activeSng = sng;
+      switchSong(sng);
+    }
+
+    // Schedule next slide
+    clearTimeout(stTimer);
+    stTimer = setTimeout(() => goSlide(cur + 1), dur);
+  }
+
+  // ─────────────────────────────────────────────
+  // YOUTUBE INTEGRATION
+  // ─────────────────────────────────────────────
+  function loadYT() {
+    if (window.YT && window.YT.Player) {
+      onYouTubeIframeAPIReady();
+      return;
+    }
+    const t = document.createElement('script');
+    t.src = 'https://www.youtube.com/iframe_api';
+    document.head.appendChild(t);
+  }
+
+  window.onYouTubeIframeAPIReady = function () {
+    ytOk = true;
+    SONGS.forEach((s, i) => {
+      const el = document.createElement('div');
+      el.id = `yt-${i}`;
+      $ytc.appendChild(el);
+
+      ytPlrs[i] = new YT.Player(`yt-${i}`, {
+        height: '1', width: '1',
+        videoId: s.ytId,
+        playerVars: {
+          start        : s.start || 0,
+          autoplay     : 0,
+          controls     : 0,
+          disablekb    : 1,
+          fs           : 0,
+          modestbranding: 1,
+          rel          : 0
+        },
+        events: {
+          onReady: e => e.target.setVolume(0)
+        }
       });
     });
-  }
+  };
 
-  // ——————————————————————————————
-  // COUNTER
-  // ——————————————————————————————
-  function updateCounter() {
-    sceneCounter.textContent = `${String(currentScene + 1).padStart(2, '0')} / ${String(scenes.length).padStart(2, '0')}`;
-  }
+  function switchSong(idx) {
+    // Update song label
+    $slbl.classList.remove('on');
+    setTimeout(() => {
+      $slbl.textContent = SONGS[idx] ? SONGS[idx].title : '';
+      $slbl.classList.add('on');
+    }, 350);
 
-  // ——————————————————————————————
-  // AUDIO ENGINE
-  // ——————————————————————————————
-  function initAudioContext() {
-    try {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      audioIndicator.classList.add('visible');
-      preloadTracks();
-    } catch (e) {
-      console.warn('Audio context unavailable:', e);
-    }
-  }
+    if (!ytOk) return;
 
-  async function preloadTracks() {
-    // Try to preload first track
-    if (music.length > 0) {
-      await loadAndPlay(music[0], true);
-    }
-  }
-
-  async function loadAndPlay(track, isFirst = false) {
-    if (!audioCtx || !track.url) return;
-
-    try {
-      let buffer = audioBuffers[track.id];
-      if (!buffer) {
-        const res = await fetch(track.url);
-        if (!res.ok) throw new Error('fetch failed');
-        const ab = await res.arrayBuffer();
-        buffer = await audioCtx.decodeAudioData(ab);
-        audioBuffers[track.id] = buffer;
+    // Fade out all other songs
+    SONGS.forEach((_, i) => {
+      if (i !== idx && ytPlrs[i]) {
+        fadeVol(ytPlrs[i], 0, () => {
+          try { ytPlrs[i].pauseVideo(); } catch {}
+        });
       }
-      playBuffer(buffer, track.volume || 0.6, isFirst ? 2 : 0);
-    } catch (e) {
-      // Audio unavailable — graceful fallback, no crash
-    }
-  }
-
-  function playBuffer(buffer, targetVol, fadeInTime) {
-    // Fade out current
-    if (currentGainNode) {
-      const g = currentGainNode;
-      g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.5);
-      setTimeout(() => {
-        try { currentAudioSource.stop(); } catch {}
-      }, 1600);
-    }
-
-    const source = audioCtx.createBufferSource();
-    const gain = audioCtx.createGain();
-    source.buffer = buffer;
-    source.loop = true;
-    source.connect(gain);
-    gain.connect(audioCtx.destination);
-    gain.gain.setValueAtTime(0, audioCtx.currentTime);
-    gain.gain.linearRampToValueAtTime(targetVol, audioCtx.currentTime + (fadeInTime || 1.5));
-    source.start();
-
-    currentAudioSource = source;
-    currentGainNode = gain;
-  }
-
-  function checkMusicSchedule() {
-    if (!audioCtx || music.length === 0) return;
-    if (nextTrackIndex >= music.length) return;
-
-    const track = music[nextTrackIndex];
-    if (globalTime >= track.startAt) {
-      nextTrackIndex++;
-      loadAndPlay(track);
-    }
-  }
-
-  // ——————————————————————————————
-  // END CARD
-  // ——————————————————————————————
-  function showEndCard() {
-    clearInterval(globalTimerID);
-    progressBar.style.width = '100%';
-
-    // Fade audio out
-    if (currentGainNode) {
-      currentGainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 4);
-    }
-
-    setTimeout(() => {
-      endCard.classList.add('visible');
-    }, 1800);
-  }
-
-  // ——————————————————————————————
-  // REPLAY
-  // ——————————————————————————————
-  function replay() {
-    endCard.classList.remove('visible');
-    currentScene = -1;
-    nextTrackIndex = 0;
-    globalTime = 0;
-    isPlaying = false;
-
-    // Reset all scenes
-    document.querySelectorAll('.scene').forEach(s => {
-      s.classList.remove('active');
-      s.querySelectorAll('.subtitle-line').forEach(l => {
-        l.classList.remove('visible', 'out');
-      });
     });
 
-    audioBuffers = {};
-    currentAudioSource = null;
-    currentGainNode = null;
-
-    setTimeout(() => {
-      goToScene(0);
-      initAudioContext();
-    }, 600);
-
-    isPlaying = true;
-    globalTimerID = setInterval(() => {
-      globalTime += 0.2;
-      checkMusicSchedule();
-    }, 200);
-  }
-
-  // ——————————————————————————————
-  // FALLBACK DATA
-  // ——————————————————————————————
-  function getFallbackData() {
-    return {
-      scenes: [
-        { id: 1, title: "Childhood", lines: ["Before anyone noticed…", "she was already becoming someone unforgettable."], image: "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=1920&q=80", duration: 12, overlay: "rgba(10,5,0,0.45)", kenBurns: "zoom-in" },
-        { id: 2, title: "Growing Up", lines: ["Somewhere between then and now,", "she stopped being a child — quietly."], image: "https://images.unsplash.com/photo-1504203700686-f21e703e5f1c?w=1920&q=80", duration: 12, overlay: "rgba(5,10,20,0.5)", kenBurns: "zoom-out" },
-        { id: 3, title: "Personality", lines: ["She doesn't ask for attention.", "She just walks in — and the room shifts."], image: "https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=1920&q=80", duration: 12, overlay: "rgba(0,10,15,0.5)", kenBurns: "pan-right" },
-        { id: 4, title: "Shared Memories", lines: ["Some moments don't need photographs.", "They live in the pause between words."], image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80", duration: 15, overlay: "rgba(5,5,15,0.55)", kenBurns: "pan-left" },
-        { id: 5, title: "Distance", lines: ["Things change.", "And yet, some people stay — in their own quiet way."], image: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1920&q=80", duration: 15, overlay: "rgba(0,0,5,0.6)", kenBurns: "zoom-in" },
-        { id: 6, title: "Present", lines: ["Today, on your birthday —", "this is for you. Just you."], image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920&q=80", duration: 15, overlay: "rgba(5,0,10,0.5)", kenBurns: "zoom-out" }
-      ],
-      music: []
-    };
-  }
-
-  // ——————————————————————————————
-  // KEYBOARD SUPPORT
-  // ——————————————————————————————
-  document.addEventListener('keydown', e => {
-    if (!isPlaying) return;
-    if (e.key === 'ArrowRight' || e.key === ' ') {
-      clearTimeout(sceneTimer);
-      goToScene(currentScene + 1);
+    // Fade in new song
+    if (ytPlrs[idx]) {
+      try {
+        ytPlrs[idx].seekTo(SONGS[idx].start || 0, true);
+        ytPlrs[idx].playVideo();
+        fadeVol(ytPlrs[idx], 82);
+      } catch (e) {}
     }
-  });
+  }
+
+  function fadeVol(player, to, cb) {
+    let v = 0;
+    try { v = player.getVolume() || 0; } catch {}
+    const step = to > v ? 3 : -3;
+    const iv = setInterval(() => {
+      v += step;
+      if ((step > 0 && v >= to) || (step < 0 && v <= to)) {
+        v = to;
+        clearInterval(iv);
+        if (cb) cb();
+      }
+      try { player.setVolume(Math.max(0, Math.min(100, v))); } catch {}
+    }, 80);
+  }
+
+  // ─────────────────────────────────────────────
+  // START
+  // ─────────────────────────────────────────────
+  function start() {
+    $intro.classList.add('gone');
+    [$pw, $ctr, $mbars, $slbl].forEach(e => e.classList.add('on'));
+    running = true;
+    setTimeout(() => goSlide(0), 1600);
+  }
+
+  // ─────────────────────────────────────────────
+  // END
+  // ─────────────────────────────────────────────
+  function showEnd() {
+    running = false;
+    $pb.style.width = '100%';
+    SONGS.forEach((_, i) => {
+      if (ytPlrs[i]) {
+        fadeVol(ytPlrs[i], 0, () => {
+          try { ytPlrs[i].pauseVideo(); } catch {}
+        });
+      }
+    });
+    setTimeout(() => $ec.classList.add('on'), 2000);
+  }
+
+  // ─────────────────────────────────────────────
+  // REPLAY
+  // ─────────────────────────────────────────────
+  function replay() {
+    $ec.classList.remove('on');
+    cur = -1;
+    activeSng = -1;
+
+    document.querySelectorAll('.slide').forEach(s => {
+      s.classList.remove('active');
+      s.querySelectorAll('.ll').forEach(l =>
+        l.classList.remove('in', 'out')
+      );
+    });
+
+    running = true;
+    setTimeout(() => goSlide(0), 800);
+  }
+
+  // ─────────────────────────────────────────────
+  // HELPERS
+  // ─────────────────────────────────────────────
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function escAttr(str) {
+    return String(str).replace(/"/g, '&quot;');
+  }
+
+  // ─────────────────────────────────────────────
+  // FALLBACK DATA (mirrors index.html defaults)
+  // ─────────────────────────────────────────────
+  function getFallbackSongs() {
+    return [
+      { title: "Kasoor — Prateek Kuhad",      ytId: "N3vQBQ3XPCY", start: 30 },
+      { title: "Baarishein — Atif Aslam",      ytId: "ixrSQoJ57WM", start: 15 },
+      { title: "Tum Hi Ho — Arijit Singh",     ytId: "Umqb9KENgmk", start: 10 },
+      { title: "Tera Yaar Hoon Main — Arijit", ytId: "f0Z1dOOzN5E", start: 12 },
+      { title: "Khairiyat — Arijit Singh",     ytId: "dBgtCsrR4xU", start: 18 }
+    ];
+  }
+
+  function getFallbackSlides() {
+    return [
+      {
+        img: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=1600&q=85",
+        tint: "rgba(40,20,8,0.32)", kenBurns: "zoom-in", pos: "pos-bc", song: 0, dur: 9000,
+        lines: [
+          { text: "There are people you meet", delay: 1 },
+          { text: "and the world quietly shifts.", delay: 2, color: "gold" }
+        ]
+      },
+      {
+        img: "https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=1600&q=85",
+        tint: "rgba(30,12,5,0.3)", kenBurns: "pan-right", pos: "pos-bl", song: 0, dur: 9000,
+        lines: [
+          { text: "She was one of them.", delay: 1, size: "big", color: "gold" }
+        ]
+      },
+      {
+        img: "https://images.unsplash.com/photo-1531306728370-e2ebd9d7bb99?w=1600&q=85",
+        tint: "rgba(20,10,20,0.28)", kenBurns: "zoom-out", pos: "pos-mc", song: 0, dur: 10000,
+        lines: [
+          { text: "Kuch toh tha,", delay: 1, color: "gold" },
+          { text: "jo aaँkhon ne bola,", delay: 2 },
+          { text: "jo lafzon ne nahi.", delay: 3, color: "rose" }
+        ]
+      },
+      {
+        img: "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=1600&q=85",
+        tint: "rgba(10,5,25,0.3)", kenBurns: "pan-left", pos: "pos-tr", song: 0, dur: 9000,
+        lines: [
+          { text: "The kind of person", delay: 1, style: "sm" },
+          { text: "you remember", delay: 2 },
+          { text: "on ordinary days.", delay: 3, color: "rose" }
+        ]
+      },
+      {
+        img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=1600&q=85",
+        tint: "rgba(30,10,5,0.28)", kenBurns: "drift-up", pos: "pos-bc", song: 0, dur: 9000,
+        lines: [
+          { text: "Kasoor tera nahi.", delay: 1, size: "big", color: "gold" },
+          { text: "Aur mera bhi nahi.", delay: 2 }
+        ]
+      },
+      {
+        img: "https://images.unsplash.com/photo-1519692933481-e162a57d6721?w=1600&q=85",
+        tint: "rgba(5,15,32,0.38)", kenBurns: "zoom-in", pos: "pos-bc", song: 1, dur: 9500,
+        lines: [
+          { text: "Baarish jab bhi ho —", delay: 1, color: "blue" },
+          { text: "teri yaad aati hai.", delay: 2 }
+        ]
+      },
+      {
+        img: "https://images.unsplash.com/photo-1534274988757-a28bf1a57c17?w=1600&q=85",
+        tint: "rgba(5,18,35,0.35)", kenBurns: "drift-up", pos: "pos-ml", song: 1, dur: 9000,
+        lines: [
+          { text: "Some feelings", delay: 1, style: "caps" },
+          { text: "don't have names.", delay: 2, size: "big" },
+          { text: "They just live.", delay: 3, color: "blue" }
+        ]
+      },
+      {
+        img: "https://images.unsplash.com/photo-1473621038790-b778b4750efe?w=1600&q=85",
+        tint: "rgba(8,12,30,0.38)", kenBurns: "pan-right", pos: "pos-tc", song: 1, dur: 9500,
+        lines: [
+          { text: "Jo dil mein tha —", delay: 1 },
+          { text: "woh kabhi keh nahi paaye.", delay: 2, color: "rose" }
+        ]
+      },
+      {
+        img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1600&q=85",
+        tint: "rgba(5,10,28,0.35)", kenBurns: "zoom-out", pos: "pos-bc", song: 1, dur: 9000,
+        lines: [
+          { text: "And still —", delay: 1, style: "sm" },
+          { text: "she stayed.", delay: 2, size: "big", color: "blue" },
+          { text: "Like rain that never felt like sadness.", delay: 3 }
+        ]
+      },
+      {
+        img: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=85",
+        tint: "rgba(5,8,25,0.32)", kenBurns: "pan-left", pos: "pos-br", song: 1, dur: 9000,
+        lines: [
+          { text: "Baarishein thi,", delay: 1, color: "blue" },
+          { text: "aur tum bhi.", delay: 2, color: "gold" }
+        ]
+      },
+      {
+        img: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1600&q=85",
+        tint: "rgba(30,8,5,0.28)", kenBurns: "zoom-in", pos: "pos-mc", song: 2, dur: 10000,
+        lines: [
+          { text: "Tum hi ho.", delay: 1, size: "big", color: "gold" }
+        ]
+      },
+      {
+        img: "https://images.unsplash.com/photo-1454496522488-7a8e488e8606?w=1600&q=85",
+        tint: "rgba(22,8,5,0.28)", kenBurns: "pan-left", pos: "pos-bl", song: 2, dur: 9000,
+        lines: [
+          { text: "Har ek lamhe mein,", delay: 1 },
+          { text: "sirf tum.", delay: 2, size: "big", color: "gold" }
+        ]
+      },
+      {
+        img: "https://images.unsplash.com/photo-1474631245212-32dc3c8310c6?w=1600&q=85",
+        tint: "rgba(18,6,4,0.3)", kenBurns: "drift-up", pos: "pos-tc", song: 2, dur: 9500,
+        lines: [
+          { text: "There is something rare", delay: 1, style: "sm" },
+          { text: "about a person who makes", delay: 2 },
+          { text: "the world feel like home.", delay: 3, color: "gold" }
+        ]
+      },
+      {
+        img: "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=1600&q=85",
+        tint: "rgba(25,8,4,0.28)", kenBurns: "pan-right", pos: "pos-bc", song: 2, dur: 9000,
+        lines: [
+          { text: "Ab tere bina kya nahi —", delay: 1, color: "rose" },
+          { text: "yeh dil jaanta hai.", delay: 2 }
+        ]
+      },
+      {
+        img: "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1600&q=85",
+        tint: "rgba(28,15,0,0.25)", kenBurns: "zoom-out", pos: "pos-tc", song: 3, dur: 9000,
+        lines: [
+          { text: "Tera yaar hoon main.", delay: 1, size: "big", color: "gold" },
+          { text: "Sada ke liye.", delay: 2 }
+        ]
+      },
+      {
+        img: "https://images.unsplash.com/photo-1524117074681-31bd4de22ad3?w=1600&q=85",
+        tint: "rgba(30,18,0,0.26)", kenBurns: "pan-right", pos: "pos-bl", song: 3, dur: 9000,
+        lines: [
+          { text: "The laughs that made", delay: 1 },
+          { text: "everything okay.", delay: 2, color: "gold" }
+        ]
+      },
+      {
+        img: "https://images.unsplash.com/photo-1504196606672-aef5c9cefc92?w=1600&q=85",
+        tint: "rgba(22,12,0,0.26)", kenBurns: "pan-left", pos: "pos-mc", song: 3, dur: 9500,
+        lines: [
+          { text: "Woh waqt,", delay: 1 },
+          { text: "jo kabhi lautega nahi —", delay: 2 },
+          { text: "par dil mein hai.", delay: 3, color: "gold" }
+        ]
+      },
+      {
+        img: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1600&q=85",
+        tint: "rgba(20,10,0,0.28)", kenBurns: "zoom-in", pos: "pos-tr", song: 3, dur: 9000,
+        lines: [
+          { text: "Saath nibhaana,", delay: 1, color: "gold" },
+          { text: "yeh waada mera.", delay: 2 }
+        ]
+      },
+      {
+        img: "https://images.unsplash.com/photo-1500622944204-b135684e99fd?w=1600&q=85",
+        tint: "rgba(5,5,22,0.33)", kenBurns: "drift-up", pos: "pos-bc", song: 4, dur: 9500,
+        lines: [
+          { text: "Khairiyat pooch,", delay: 1, color: "blue" },
+          { text: "kabhi toh khairiyat pooch.", delay: 2 }
+        ]
+      },
+      {
+        img: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1600&q=85",
+        tint: "rgba(5,5,22,0.32)", kenBurns: "pan-left", pos: "pos-ml", song: 4, dur: 9500,
+        lines: [
+          { text: "Distance changes nothing", delay: 1 },
+          { text: "that was ever real.", delay: 2, color: "rose" }
+        ]
+      },
+      {
+        img: "https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=1600&q=85",
+        tint: "rgba(8,5,20,0.35)", kenBurns: "zoom-in", pos: "pos-bc", song: 4, dur: 10000,
+        lines: [
+          { text: "And today —", delay: 1, style: "caps" },
+          { text: "on your birthday,", delay: 2, size: "big", color: "gold" },
+          { text: "I just want you to feel it all.", delay: 3 }
+        ]
+      },
+      {
+        img: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1600&q=85",
+        tint: "rgba(5,0,18,0.35)", kenBurns: "zoom-out", pos: "pos-mc", song: 4, dur: 13000,
+        lines: [
+          { text: "Happy Birthday.", delay: 1, size: "big", color: "gold" },
+          { text: "You deserve every beautiful thing.", delay: 2 },
+          { text: "Every single one.", delay: 3, color: "rose" }
+        ]
+      }
+    ];
+  }
+
+  // ─────────────────────────────────────────────
+  // EXPOSE replay globally (called by HTML button)
+  // ─────────────────────────────────────────────
+  window.replay = replay;
 
   return { init };
 })();
