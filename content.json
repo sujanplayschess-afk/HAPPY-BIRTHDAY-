@@ -1,28 +1,33 @@
 {
   "music": [
-    { "file": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", "startScene": 0 },
-    { "file": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3", "startScene": 2 }
+    { "file": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", "start": 0 },
+    { "file": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3", "start": 15 }
   ],
   "scenes": [
     {
-      "title": "Childhood",
       "text": "Before the world knew her...",
-      "image": "https://picsum.photos/1920/1080?random=1"
+      "image": "https://picsum.photos/1920/1080?random=1",
+      "duration": 5
     },
     {
-      "title": "Growing Up",
-      "text": "She became someone rare.",
-      "image": "https://picsum.photos/1920/1080?random=2"
+      "text": "She grew into something rare.",
+      "image": "https://picsum.photos/1920/1080?random=2",
+      "duration": 5
     },
     {
-      "title": "Us",
-      "text": "And then our paths crossed.",
-      "image": "https://picsum.photos/1920/1080?random=3"
+      "text": "Somewhere… our paths crossed.",
+      "image": "https://picsum.photos/1920/1080?random=3",
+      "duration": 5
     },
     {
-      "title": "Today",
+      "text": "Not every story stays… but it matters.",
+      "image": "https://picsum.photos/1920/1080?random=4",
+      "duration": 5
+    },
+    {
       "text": "Happy Birthday.",
-      "image": "https://picsum.photos/1920/1080?random=4"
+      "image": "https://picsum.photos/1920/1080?random=5",
+      "duration": 6
     }
   ]
 }
