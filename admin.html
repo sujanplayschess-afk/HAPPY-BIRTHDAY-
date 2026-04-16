@@ -712,13 +712,12 @@ function previewImg(slideIdx, src) {
 }
 
 /* ============================================
-   SONGS — LOCAL FILE UPLOAD
+   SONGS — LOCAL FILE UPLOAD (FIXED)
    ============================================ */
 function renderSongs() {
   const list = document.getElementById('songs-list');
   list.innerHTML = '';
   (data.songs||[]).forEach((s, i) => {
-    /* FIX: check all possible audio fields */
     const hasAudio = !!(s.audioData || s.audioUrl || s.src);
     const card = document.createElement('div');
     card.className = 'song-card';
@@ -793,7 +792,6 @@ function renderAudioEmpty(i) {
 }
 
 function renderAudioPlayer(i, s) {
-  /* FIX: support audioData (base64), audioUrl, or legacy src field */
   const src = s.audioData || s.audioUrl || s.src || '';
   const type = s.audioType || guessAudioType(s.fileName || s.audioUrl || '');
   const label = s.fileName || (s.audioUrl ? s.audioUrl.split('/').pop() : '') || 'Uploaded';
@@ -808,7 +806,6 @@ function renderAudioPlayer(i, s) {
     </div>`;
 }
 
-/* FIX: guess MIME type from file extension */
 function guessAudioType(filename) {
   const ext = (filename || '').split('.').pop().toLowerCase();
   const map = { mp3:'audio/mpeg', wav:'audio/wav', ogg:'audio/ogg', aac:'audio/aac',
@@ -823,6 +820,7 @@ function handleAudioUpload(songIdx, input) {
   const maxMB = 20;
   if (file.size > maxMB * 1024 * 1024) {
     toast(`File too large — max ${maxMB}MB`);
+    input.value = '';
     return;
   }
 
@@ -830,24 +828,45 @@ function handleAudioUpload(songIdx, input) {
   const reader = new FileReader();
   reader.onload = e => {
     const dataUrl = e.target.result;
-    /* FIX: store as audioData (base64 data URL) AND set audioUrl to same
-       so both old index.html (reads audioUrl) and new (reads audioData) work */
+    
+    // Store audio data in all three fields for maximum compatibility
     data.songs[songIdx].audioData = dataUrl;
-    data.songs[songIdx].audioUrl  = dataUrl;   // ← KEY FIX: main site reads audioUrl
-    data.songs[songIdx].src       = dataUrl;   // ← fallback alias
+    data.songs[songIdx].audioUrl  = dataUrl;
+    data.songs[songIdx].src       = dataUrl;
     data.songs[songIdx].audioType = file.type || guessAudioType(file.name);
     data.songs[songIdx].fileName  = file.name;
 
-    /* Auto-fill title from filename if still default */
+    // Auto-fill title from filename if still default
     if (!data.songs[songIdx].title || data.songs[songIdx].title === 'New Song — Artist') {
       const nameNoExt = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
       data.songs[songIdx].title = nameNoExt;
     }
+    
     save();
-    renderSongs();
+    
+    // Update just the audio player section dynamically
+    const playerWrap = document.getElementById(`audio-player-wrap-${songIdx}`);
+    if (playerWrap) {
+      playerWrap.innerHTML = renderAudioPlayer(songIdx, data.songs[songIdx]);
+    }
+    
+    // Update the filename display
+    const nameInput = document.getElementById(`audio-name-${songIdx}`);
+    if (nameInput) {
+      nameInput.value = file.name;
+    }
+    
     toast(`Uploaded: ${file.name} ✓`);
+    
+    // Clear the file input so same file can be re-selected
+    input.value = '';
   };
-  reader.onerror = () => toast('Error reading file — try a smaller file');
+  
+  reader.onerror = () => {
+    toast('Error reading file — try a smaller file');
+    input.value = '';
+  };
+  
   reader.readAsDataURL(file);
 }
 
