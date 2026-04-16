@@ -21,17 +21,14 @@
 }
 html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-family:var(--fb);color:var(--warm);-webkit-font-smoothing:antialiased;}
 
-/* GRAIN */
 #grain{position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:.05;
   background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   background-size:180px;animation:grn .4s steps(3) infinite;}
 @keyframes grn{0%{transform:translate(0,0)}33%{transform:translate(-2%,2%)}66%{transform:translate(2%,-2%)}100%{transform:translate(-1%,1%)}}
 
-/* VIGNETTE */
 #vig{position:fixed;inset:0;z-index:9998;pointer-events:none;
   background:radial-gradient(ellipse at center,transparent 30%,rgba(8,6,16,.8) 100%);}
 
-/* LOADER */
 #loader{position:fixed;inset:0;z-index:8000;background:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;transition:opacity 1.2s ease,visibility 1.2s ease;}
 #loader.gone{opacity:0;visibility:hidden;pointer-events:none;}
 .ld-petal{display:flex;gap:5px;align-items:flex-end;}
@@ -44,7 +41,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
 @keyframes petalanim{from{transform:scaleY(.2);opacity:.2}to{transform:scaleY(1);opacity:1}}
 .ld-txt{font-weight:200;font-size:9px;letter-spacing:.55em;text-transform:uppercase;color:rgba(232,169,106,.3);}
 
-/* INTRO */
 #intro{position:fixed;inset:0;z-index:5000;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--ink);transition:opacity 3s ease,visibility 3s ease;}
 #intro.gone{opacity:0;visibility:hidden;pointer-events:none;}
 
@@ -69,16 +65,13 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
 .pbtn:hover{color:var(--amber);border-color:rgba(232,169,106,.45);letter-spacing:.5em;}
 .pbtn-icon{width:0;height:0;border-top:4px solid transparent;border-bottom:4px solid transparent;border-left:7px solid currentColor;flex-shrink:0;}
 
-/* PROGRESS */
 #pw{position:fixed;top:0;left:0;right:0;z-index:4000;height:1px;background:rgba(245,237,224,.04);opacity:0;transition:opacity 1s;}
 #pw.on{opacity:1;}
 #pb{height:100%;width:0%;background:linear-gradient(to right,rgba(232,160,162,.5),var(--amber));box-shadow:0 0 6px rgba(232,169,106,.4);}
 
-/* COUNTER */
 #ctr{position:fixed;bottom:26px;right:28px;z-index:4000;font-weight:200;font-size:8px;letter-spacing:.3em;color:rgba(245,237,224,.15);opacity:0;transition:opacity 1s;}
 #ctr.on{opacity:1;}
 
-/* MUSIC VIZ */
 #mbars{position:fixed;bottom:24px;left:28px;z-index:4000;display:flex;align-items:flex-end;gap:3px;height:14px;opacity:0;transition:opacity .8s;}
 #mbars.on{opacity:1;}
 .mb{width:2px;border-radius:1px;background:rgba(232,169,106,.35);animation:mba 1s ease-in-out infinite alternate;}
@@ -89,14 +82,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
 .mb:nth-child(5){height:4px;animation-duration:.9s;animation-delay:.18s;}
 @keyframes mba{from{transform:scaleY(.15)}to{transform:scaleY(1)}}
 
-/* STAGE */
 #stage{position:fixed;inset:0;z-index:1;}
 
-/* SLIDE */
 .slide{position:absolute;inset:0;opacity:0;transition:opacity 2.2s cubic-bezier(.4,0,.2,1);will-change:opacity;}
 .slide.active{opacity:1;}
 
-/* BG */
 .sbg{position:absolute;inset:-12%;background-size:cover;background-position:center;will-change:transform;}
 .kb-zi{animation:kbZI 24s ease-out forwards;}
 .kb-zo{animation:kbZO 24s ease-out forwards;}
@@ -111,7 +101,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
 @keyframes kbDU{from{transform:scale(1.08) translateY(-3%)}to{transform:scale(1.08) translateY(3%)}}
 @keyframes kbDR{from{transform:scale(1.08) translateY(3%)}to{transform:scale(1.08) translateY(-3%)}}
 
-/* OVERLAYS */
 .sovl{position:absolute;inset:0;}
 .stint{position:absolute;inset:0;mix-blend-mode:multiply;}
 .sbar-t{position:absolute;top:0;left:0;right:0;height:12%;background:linear-gradient(to bottom,rgba(8,6,16,.8),transparent);}
@@ -119,7 +108,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
 .sbar-l{position:absolute;top:0;bottom:0;left:0;width:8%;background:linear-gradient(to right,rgba(8,6,16,.45),transparent);}
 .sbar-r{position:absolute;top:0;bottom:0;right:0;width:8%;background:linear-gradient(to left,rgba(8,6,16,.45),transparent);}
 
-/* TEXT POSITIONS */
 .lw{position:absolute;z-index:10;max-width:min(860px,88vw);}
 .pos-bl{bottom:11%;left:7%;text-align:left;}
 .pos-bc{bottom:11%;left:50%;transform:translateX(-50%);text-align:center;}
@@ -131,7 +119,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
 .pos-tr{top:18%;right:7%;text-align:right;}
 .pos-fc{top:44%;left:50%;transform:translate(-50%,-50%);text-align:center;}
 
-/* LYRIC LINE */
 .ll{
   display:block;
   font-family:var(--ph);
@@ -173,7 +160,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
 .d4{transition-delay:2.1s}
 .d5{transition-delay:2.7s}
 
-/* CHAPTER */
 .chapter{position:absolute;top:30px;left:50%;transform:translateX(-50%);z-index:11;
   display:flex;align-items:center;gap:12px;
   font-weight:200;font-size:8px;letter-spacing:.5em;text-transform:uppercase;
@@ -181,12 +167,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
 .slide.active .chapter{color:rgba(232,169,106,.4);}
 .chapter-line{width:24px;height:1px;background:currentColor;}
 
-/* SCENE NUMBER */
 .scene-n{position:absolute;top:28px;right:7%;z-index:11;
   font-family:var(--ph);font-style:italic;font-size:clamp(4rem,6.5vw,6rem);font-weight:400;
   color:rgba(245,237,224,.03);line-height:1;user-select:none;}
 
-/* END CARD */
 #ec{position:fixed;inset:0;z-index:4500;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--ink);opacity:0;pointer-events:none;transition:opacity 3s ease;}
 #ec.on{opacity:1;pointer-events:all;}
 
@@ -223,15 +207,12 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
 #ec.on .rbtn{animation:fadeIn .8s 4s forwards;}
 .rbtn:hover{border-color:rgba(232,169,106,.5);color:var(--amber);}
 
-/* FLASH */
 #flash{position:fixed;inset:0;z-index:3000;background:var(--ink);opacity:0;pointer-events:none;transition:opacity .35s ease;}
 #flash.on{opacity:.15;}
 
-/* KEYFRAMES */
 @keyframes riseIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 
-/* MOBILE */
 @media(max-width:640px){
   .pos-bl,.pos-br{left:6%;right:6%;bottom:13%;text-align:center;transform:none;}
   .pos-ml{left:6%;right:6%;text-align:center;transform:translateY(-50%);}
@@ -250,7 +231,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
 <div id="vig"></div>
 <div id="flash"></div>
 
-<!-- LOADER -->
 <div id="loader">
   <div class="ld-petal">
     <span></span><span></span><span></span><span></span><span></span>
@@ -258,7 +238,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
   <span class="ld-txt">One moment</span>
 </div>
 
-<!-- INTRO -->
 <div id="intro">
   <span class="i-small">A little something — made just for you</span>
   <h1 class="i-title">
@@ -281,22 +260,17 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
   </button>
 </div>
 
-<!-- PROGRESS -->
 <div id="pw"><div id="pb"></div></div>
 
-<!-- COUNTER -->
 <div id="ctr"></div>
 
-<!-- MUSIC BARS -->
 <div id="mbars">
   <div class="mb"></div><div class="mb"></div><div class="mb"></div>
   <div class="mb"></div><div class="mb"></div>
 </div>
 
-<!-- STAGE -->
 <div id="stage"></div>
 
-<!-- END CARD -->
 <div id="ec">
   <div class="ec-inner">
     <div class="ec-petals">
@@ -320,6 +294,37 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
 </div>
 
 <script>
+/* ========================================
+   INDEXEDDB SETUP
+   ======================================== */
+
+const DB_NAME = 'ForHerDB';
+const DB_VERSION = 1;
+let db = null;
+
+function initDB() {
+  return new Promise((resolve) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    
+    req.onerror = () => {
+      console.warn('IndexedDB error');
+      resolve(null);
+    };
+    req.onsuccess = () => {
+      db = req.result;
+      console.log('✓ IndexedDB ready');
+      resolve(db);
+    };
+    
+    req.onupgradeneeded = (e) => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('content')) {
+        d.createObjectStore('content', { keyPath: 'id' });
+      }
+    };
+  });
+}
+
 /* ========================================
    DATA & STATE
    ======================================== */
@@ -385,36 +390,54 @@ const $loader = document.getElementById('loader');
 const $flash  = document.getElementById('flash');
 
 /* ========================================
-   LOAD DATA (localStorage + content.json)
+   LOAD DATA
    ======================================== */
 
 async function loadData() {
-  let data = null;
-
-  // Try localStorage first
-  try {
-    const saved = localStorage.getItem('forHerAdmin');
-    if (saved) data = JSON.parse(saved);
-  } catch (e) {
-    console.warn('localStorage parse error:', e);
-  }
-
-  // Fallback to content.json
-  if (!data) {
+  let loaded = false;
+  
+  // Try IndexedDB first
+  if (db) {
     try {
-      const res = await fetch('content.json?' + Date.now());
-      if (res.ok) data = await res.json();
+      const dbData = await new Promise((resolve) => {
+        const tx = db.transaction(['content'], 'readonly');
+        const store = tx.objectStore('content');
+        const req = store.get('main');
+        req.onsuccess = () => {
+          if (req.result?.data) resolve(req.result.data);
+          else resolve(null);
+        };
+        req.onerror = () => resolve(null);
+      });
+      
+      if (dbData) {
+        if (dbData.songs && dbData.songs.length) SONGS = dbData.songs;
+        if (dbData.slides && dbData.slides.length) SLIDES = normalizeSlides(dbData.slides);
+        if (dbData.endCard) END_CARD = {...DEFAULT_END, ...dbData.endCard};
+        if (dbData.page) PAGE_DATA = {...DEFAULT_PAGE, ...dbData.page};
+        console.log('✓ Loaded from IndexedDB');
+        loaded = true;
+      }
     } catch (e) {
-      console.warn('content.json load error:', e);
+      console.warn('IndexedDB load error:', e);
     }
   }
-
-  // Apply data if found
-  if (data) {
-    if (data.songs && data.songs.length) SONGS = data.songs;
-    if (data.slides && data.slides.length) SLIDES = normalizeSlides(data.slides);
-    if (data.endCard) END_CARD = {...DEFAULT_END, ...data.endCard};
-    if (data.page) PAGE_DATA = {...DEFAULT_PAGE, ...data.page};
+  
+  // Fallback to content.json
+  if (!loaded) {
+    try {
+      const res = await fetch('content.json?' + Date.now());
+      if (res.ok) {
+        const jsonData = await res.json();
+        if (jsonData.songs && jsonData.songs.length) SONGS = jsonData.songs;
+        if (jsonData.slides && jsonData.slides.length) SLIDES = normalizeSlides(jsonData.slides);
+        if (jsonData.endCard) END_CARD = {...DEFAULT_END, ...jsonData.endCard};
+        if (jsonData.page) PAGE_DATA = {...DEFAULT_PAGE, ...jsonData.page};
+        console.log('✓ Loaded from content.json');
+      }
+    } catch (e) {
+      console.warn('content.json error:', e);
+    }
   }
 
   applyPageData();
@@ -493,7 +516,7 @@ function buildSlides() {
 }
 
 /* ========================================
-   AUDIO SETUP (HTML5 Audio from base64)
+   AUDIO SETUP
    ======================================== */
 
 function setupAudio() {
@@ -503,27 +526,23 @@ function setupAudio() {
   SONGS.forEach((song, i) => {
     const audio = new Audio();
     
-    // Check for uploaded audio (base64) in audioData, audioUrl, or src
     const audioSrc = song.audioData || song.audioUrl || song.src;
     
     if (audioSrc && audioSrc.startsWith('data:')) {
-      // Use uploaded base64 audio
       audio.src = audioSrc;
     } else {
-      // Fallback: no audio (silent mode)
       audio.src = '';
     }
 
     audio.preload = 'auto';
     audio.volume = 0;
-    audio.loop = false; // We'll handle looping manually
+    audio.loop = false;
 
     audio.addEventListener('canplaythrough', () => {
       audioReady[i] = true;
     }, { once: true });
 
     audio.addEventListener('ended', () => {
-      // Loop back to start position
       audio.currentTime = song.start || 0;
       audio.play().catch(() => {});
     });
@@ -542,7 +561,6 @@ function playAudio(idx) {
   audio.currentTime = song.start || 0;
   audio.play().catch(() => {});
   
-  // Fade in
   fadeVolume(audio, 0, (song.volume != null ? song.volume : 0.85), song.fadeIn || 800);
 }
 
@@ -552,7 +570,6 @@ function stopAudio(idx) {
   const audio = audioElements[idx];
   const song = SONGS[idx];
   
-  // Fade out
   fadeVolume(audio, null, 0, song.fadeOut || 1200, () => {
     audio.pause();
   });
@@ -581,14 +598,12 @@ function fadeVolume(audio, fromVol, toVol, duration, callback) {
 function switchAudio(idx) {
   if (idx === activeSng) return;
   
-  // Stop current
   if (activeSng >= 0 && activeSng < audioElements.length) {
     stopAudio(activeSng);
   }
   
   activeSng = idx;
   
-  // Play new
   if (idx >= 0 && idx < audioElements.length) {
     playAudio(idx);
   }
@@ -610,7 +625,6 @@ function goSlide(idx) {
   $flash.classList.add('on');
   setTimeout(() => $flash.classList.remove('on'), 350);
 
-  // Hide previous slide
   if (prev >= 0) {
     const pe = document.getElementById(`sl-${prev}`);
     if (pe) {
@@ -622,7 +636,6 @@ function goSlide(idx) {
     }
   }
 
-  // Show current slide
   const el = document.getElementById(`sl-${idx}`);
   const ob = el.querySelector('.sbg');
   const nb = document.createElement('div');
@@ -635,7 +648,6 @@ function goSlide(idx) {
   lls.forEach(l => l.classList.remove('out'));
   requestAnimationFrame(() => requestAnimationFrame(() => lls.forEach(l => l.classList.add('in'))));
 
-  // Progress bar
   const dur = SLIDES[idx].dur;
   $pb.style.transition = 'none';
   $pb.style.width = '0%';
@@ -644,14 +656,11 @@ function goSlide(idx) {
     $pb.style.width = '100%';
   }));
 
-  // Counter
   $ctr.textContent = `${String(idx+1).padStart(2,'0')} / ${String(SLIDES.length).padStart(2,'0')}`;
 
-  // Switch audio
   const sng = SLIDES[idx].song || 0;
   if (sng !== activeSng) switchAudio(sng);
 
-  // Next slide timer
   clearTimeout(stTimer);
   stTimer = setTimeout(() => goSlide(cur+1), dur);
 }
@@ -665,7 +674,6 @@ function start() {
   [$pw, $ctr, $mbars].forEach(e => e.classList.add('on'));
   running = true;
   
-  // Start first audio
   if (audioElements[0] && audioElements[0].src) {
     playAudio(0);
     activeSng = 0;
@@ -678,7 +686,6 @@ function showEnd() {
   running = false;
   $pb.style.width = '100%';
   
-  // Fade out all audio
   audioElements.forEach((audio, i) => {
     if (audio && audio.src) stopAudio(i);
   });
@@ -707,7 +714,7 @@ function replay() {
 }
 
 /* ========================================
-   KEYBOARD CONTROLS
+   KEYBOARD
    ======================================== */
 
 document.addEventListener('keydown', e => {
@@ -721,26 +728,6 @@ document.addEventListener('keydown', e => {
     e.preventDefault();
     clearTimeout(stTimer);
     goSlide(Math.max(0, cur - 1));
-  }
-});
-
-/* ========================================
-   STORAGE SYNC (listen for admin changes)
-   ======================================== */
-
-window.addEventListener('storage', async e => {
-  if (e.key === 'forHerAdmin') {
-    await loadData();
-    buildSlides();
-    setupAudio();
-    
-    // Reset state
-    cur = -1;
-    activeSng = -1;
-    running = false;
-    $ec.classList.remove('on');
-    $intro.classList.remove('gone');
-    [$pw, $ctr, $mbars].forEach(el => el.classList.remove('on'));
   }
 });
 
@@ -767,6 +754,7 @@ function cssEsc(s) {
    ======================================== */
 
 async function init() {
+  await initDB();
   await loadData();
   buildSlides();
   setupAudio();
