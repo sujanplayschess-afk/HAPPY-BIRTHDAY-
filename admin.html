@@ -107,16 +107,13 @@ main{max-width:1180px;margin:0 auto;padding:36px 28px;}
 .song-idx{font-size:9px;color:var(--gold);letter-spacing:.15em;background:rgba(232,169,106,.08);
   padding:3px 10px;border-radius:10px;text-transform:uppercase;}
 
-/* AUDIO PLAYER PREVIEW */
 .audio-player-mini{display:flex;align-items:center;gap:10px;background:var(--surface2);
   border:1px solid var(--border);border-radius:2px;padding:10px 14px;margin-top:8px;}
 .audio-player-mini audio{flex:1;height:28px;filter:invert(0.8) sepia(1) saturate(0.4) hue-rotate(340deg);}
 .audio-badge{font-size:9px;letter-spacing:.12em;background:rgba(90,172,126,.12);
   border:1px solid rgba(90,172,126,.25);color:var(--success);padding:3px 10px;border-radius:10px;
   white-space:nowrap;flex-shrink:0;}
-.audio-badge.none{background:var(--gold-dim);border-color:var(--gold-border);color:rgba(232,169,106,.6);}
 
-/* AUDIO UPLOAD */
 .audio-upload-row{display:flex;gap:8px;align-items:stretch;}
 .audio-upload-row input[type="text"]{flex:1;}
 .audio-upload-label{flex-shrink:0;padding:9px 16px;background:var(--gold-dim);
@@ -126,7 +123,6 @@ main{max-width:1180px;margin:0 auto;padding:36px 28px;}
 .audio-upload-label:hover{background:rgba(232,169,106,.12);color:var(--gold);}
 .file-input{display:none;}
 
-/* No-audio placeholder */
 .audio-empty{display:flex;align-items:center;gap:12px;background:var(--surface2);
   border:1px dashed rgba(232,169,106,.18);border-radius:2px;padding:12px 14px;margin-top:8px;}
 .audio-empty-icon{font-size:18px;opacity:.35;flex-shrink:0;}
@@ -146,7 +142,6 @@ main{max-width:1180px;margin:0 auto;padding:36px 28px;}
 .preview-diamond{width:4px;height:4px;background:var(--gold);transform:rotate(45deg);}
 .preview-msg{font-family:var(--ph);font-style:italic;font-size:1rem;color:rgba(240,232,218,.4);line-height:1.7;}
 
-/* PAGE EDITOR */
 .page-editor-wrap{background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:28px;}
 .page-preview-mock{background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:32px;
   text-align:center;margin-bottom:28px;position:relative;overflow:hidden;}
@@ -214,9 +209,6 @@ textarea{resize:vertical;min-height:72px;line-height:1.6;}
   max-height:280px;overflow:auto;white-space:pre-wrap;margin-bottom:18px;line-height:1.6;}
 .export-actions{display:flex;gap:10px;flex-wrap:wrap;}
 
-.drag-handle{cursor:grab;color:var(--dim2);padding:0 6px 0 0;font-size:14px;user-select:none;flex-shrink:0;}
-.drag-handle:active{cursor:grabbing;}
-
 .toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(16px);
   background:var(--surface2);border:1px solid var(--gold-border);color:var(--gold);
   padding:12px 28px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;
@@ -234,7 +226,6 @@ hr{height:1px;background:var(--border);border:none;margin:24px 0;}
 .hint{font-size:11px;color:var(--dim2);line-height:1.6;margin-top:6px;padding:10px 12px;
   background:var(--surface2);border-radius:2px;border-left:2px solid var(--gold-border);}
 
-/* Color picker row for page editor */
 .color-row{display:flex;gap:10px;align-items:center;}
 .color-row input[type="color"]{width:42px;height:34px;padding:2px 3px;cursor:pointer;border-radius:2px;flex-shrink:0;}
 .color-row input[type="text"]{flex:1;}
@@ -296,7 +287,7 @@ hr{height:1px;background:var(--border);border:none;margin:24px 0;}
 
   <!-- SONGS -->
   <div id="tab-songs" class="tab-content">
-    <div class="hint">Upload MP3/WAV/OGG files from your device. Songs are referenced by index (0, 1, 2…) in each slide. Audio is stored as base64 in the JSON — keep files under 8MB each for best performance.</div>
+    <div class="hint">Upload MP3/WAV/OGG files from your device. Songs are referenced by index (0, 1, 2…) in each slide. Audio is stored as base64 in IndexedDB — keep files under 10MB each for best performance.</div>
     <br/>
     <div class="songs-list" id="songs-list"></div>
     <button class="btn-add" onclick="addSong()">+ Add Song</button>
@@ -430,7 +421,7 @@ hr{height:1px;background:var(--border);border:none;margin:24px 0;}
       <div class="export-title">Export content.json</div>
       <p class="export-desc">
         Copy or download this JSON and save as <code>content.json</code> in the same folder as <code>index.html</code>.
-        The main site loads it automatically on startup. <strong>Note:</strong> uploaded audio is stored as base64 inside <code>audioData</code> — the main site reads this field directly. Keep files under 8MB each.
+        The main site loads it automatically on startup. Audio and images are stored as base64 inside — keep files under 10MB each.
       </p>
       <div class="json-preview" id="json-preview"></div>
       <div class="export-actions">
@@ -445,29 +436,102 @@ hr{height:1px;background:var(--border);border:none;margin:24px 0;}
 <div class="toast" id="toast"></div>
 
 <script>
-/* ============================================
+/* ========================================
+   INDEXEDDB SETUP
+   ======================================== */
+
+const DB_NAME = 'ForHerDB';
+const DB_VERSION = 1;
+let db = null;
+
+function initDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    
+    req.onerror = () => reject(req.error);
+    req.onsuccess = () => {
+      db = req.result;
+      console.log('✓ IndexedDB ready');
+      resolve(db);
+    };
+    
+    req.onupgradeneeded = (e) => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('content')) {
+        d.createObjectStore('content', { keyPath: 'id' });
+      }
+    };
+  });
+}
+
+/* ========================================
    ADMIN ENGINE
-   ============================================ */
+   ======================================== */
 
 let data = { songs: [], slides: [], endCard: {}, page: {} };
 
 async function loadData() {
-  const saved = localStorage.getItem('forHerAdmin');
-  if (saved) {
-    try { data = JSON.parse(saved); } catch { data = getDefaultData(); }
-  } else {
+  let loaded = false;
+  
+  // Try IndexedDB first
+  if (db) {
+    try {
+      const dbData = await new Promise((resolve) => {
+        const tx = db.transaction(['content'], 'readonly');
+        const store = tx.objectStore('content');
+        const req = store.get('main');
+        req.onsuccess = () => {
+          if (req.result?.data) resolve(req.result.data);
+          else resolve(null);
+        };
+        req.onerror = () => resolve(null);
+      });
+      
+      if (dbData) {
+        data = dbData;
+        console.log('✓ Loaded from IndexedDB');
+        loaded = true;
+      }
+    } catch (e) {
+      console.warn('IndexedDB load error:', e);
+    }
+  }
+  
+  // Fallback to content.json
+  if (!loaded) {
     try {
       const res = await fetch('content.json');
-      if (!res.ok) throw new Error();
-      data = await res.json();
-    } catch { data = getDefaultData(); }
+      if (res.ok) {
+        data = await res.json();
+        console.log('✓ Loaded from content.json');
+      }
+    } catch (e) {
+      console.warn('content.json error:', e);
+      data = getDefaultData();
+    }
   }
+  
   if (!data.page) data.page = {};
   renderAll();
 }
 
-function save() {
-  localStorage.setItem('forHerAdmin', JSON.stringify(data));
+async function save() {
+  if (!db) return;
+  
+  return new Promise((resolve) => {
+    const tx = db.transaction(['content'], 'readwrite');
+    const store = tx.objectStore('content');
+    const req = store.put({ id: 'main', data: data });
+    
+    req.onsuccess = () => {
+      console.log('✓ Saved to IndexedDB');
+      resolve();
+    };
+    req.onerror = () => {
+      console.warn('Save error:', req.error);
+      resolve();
+    };
+  });
 }
 
 function renderAll() {
@@ -488,9 +552,10 @@ function updateStats() {
   document.getElementById('stat-songs').textContent = usedSongs.size;
 }
 
-/* ============================================
+/* ========================================
    SLIDES
-   ============================================ */
+   ======================================== */
+
 function renderSlides() {
   const list = document.getElementById('slides-list');
   list.innerHTML = '';
@@ -504,7 +569,6 @@ function renderSlides() {
 
     card.innerHTML = `
       <div class="slide-card-header" onclick="toggleCard(this)">
-        <span class="drag-handle" title="Drag to reorder">⠿</span>
         <div class="slide-num">${i+1}</div>
         <div class="slide-card-title">${escHtml(truncate(firstLine,42))}</div>
         <div class="slide-card-meta">${(s.dur||9000)/1000|0}s &nbsp;·&nbsp; ${escHtml(songTitle)}</div>
@@ -711,9 +775,10 @@ function previewImg(slideIdx, src) {
   else prev.classList.remove('show');
 }
 
-/* ============================================
-   SONGS — LOCAL FILE UPLOAD (FIXED)
-   ============================================ */
+/* ========================================
+   SONGS
+   ======================================== */
+
 function renderSongs() {
   const list = document.getElementById('songs-list');
   list.innerHTML = '';
@@ -797,7 +862,7 @@ function renderAudioPlayer(i, s) {
   const label = s.fileName || (s.audioUrl ? s.audioUrl.split('/').pop() : '') || 'Uploaded';
   return `
     <div class="audio-player-mini">
-      <audio controls preload="metadata" style="flex:1;height:28px;filter:invert(0.8) sepia(1) saturate(0.4) hue-rotate(340deg)">
+      <audio controls preload="metadata">
         <source src="${escAttr(src)}" type="${escAttr(type)}">
         Your browser does not support audio.
       </audio>
@@ -817,7 +882,7 @@ function handleAudioUpload(songIdx, input) {
   const file = input.files[0];
   if (!file) return;
 
-  const maxMB = 20;
+  const maxMB = 10;
   if (file.size > maxMB * 1024 * 1024) {
     toast(`File too large — max ${maxMB}MB`);
     input.value = '';
@@ -829,14 +894,12 @@ function handleAudioUpload(songIdx, input) {
   reader.onload = e => {
     const dataUrl = e.target.result;
     
-    // Store audio data in all three fields for maximum compatibility
     data.songs[songIdx].audioData = dataUrl;
     data.songs[songIdx].audioUrl  = dataUrl;
     data.songs[songIdx].src       = dataUrl;
     data.songs[songIdx].audioType = file.type || guessAudioType(file.name);
     data.songs[songIdx].fileName  = file.name;
 
-    // Auto-fill title from filename if still default
     if (!data.songs[songIdx].title || data.songs[songIdx].title === 'New Song — Artist') {
       const nameNoExt = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
       data.songs[songIdx].title = nameNoExt;
@@ -844,21 +907,17 @@ function handleAudioUpload(songIdx, input) {
     
     save();
     
-    // Update just the audio player section dynamically
     const playerWrap = document.getElementById(`audio-player-wrap-${songIdx}`);
     if (playerWrap) {
       playerWrap.innerHTML = renderAudioPlayer(songIdx, data.songs[songIdx]);
     }
     
-    // Update the filename display
     const nameInput = document.getElementById(`audio-name-${songIdx}`);
     if (nameInput) {
       nameInput.value = file.name;
     }
     
     toast(`Uploaded: ${file.name} ✓`);
-    
-    // Clear the file input so same file can be re-selected
     input.value = '';
   };
   
@@ -898,9 +957,10 @@ function deleteSong(i) {
   save(); renderSongs(); renderSlides(); toast('Song removed');
 }
 
-/* ============================================
+/* ========================================
    END CARD
-   ============================================ */
+   ======================================== */
+
 function renderEndCard() {
   const ec = data.endCard || {};
   setValue('ec-pre',   ec.pre   || '');
@@ -924,9 +984,10 @@ function updateEndCard(key, val) {
   setPreview(data.endCard);
 }
 
-/* ============================================
+/* ========================================
    PAGE EDITOR
-   ============================================ */
+   ======================================== */
+
 function renderPageEditor() {
   const pg = data.page || {};
   setValue('pg-eyebrow',  pg.eyebrow  || '');
@@ -981,9 +1042,10 @@ function syncColorFromText(key, val) {
   updatePage(dataKey, val);
 }
 
-/* ============================================
+/* ========================================
    EXPORT
-   ============================================ */
+   ======================================== */
+
 function getJSON() { return JSON.stringify(data, null, 2); }
 
 function renderJSONPreview() {
@@ -999,10 +1061,16 @@ function renderJSONPreview() {
       s.src = s.src.substring(0, 60) + `…[base64]`;
     }
   });
+  (clone.slides||[]).forEach(s => {
+    if (s.img && s.img.startsWith('data:') && s.img.length > 200) {
+      s.img = s.img.substring(0, 60) + `…[base64 ${Math.round(s.img.length/1024)}KB]`;
+    }
+  });
   document.getElementById('json-preview').textContent = JSON.stringify(clone, null, 2);
 }
 
-function downloadJSON() {
+async function downloadJSON() {
+  await save();
   const blob = new Blob([getJSON()], { type:'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -1019,7 +1087,6 @@ function copyJSON() {
 
 function resetData() {
   if (!confirm('Reset everything to defaults? This cannot be undone.')) return;
-  localStorage.removeItem('forHerAdmin');
   data = getDefaultData();
   save(); renderAll(); toast('Reset to defaults');
 }
@@ -1032,9 +1099,10 @@ function goExport() {
   renderJSONPreview();
 }
 
-/* ============================================
+/* ========================================
    UI HELPERS
-   ============================================ */
+   ======================================== */
+
 function toggleCard(header) { header.parentElement.classList.toggle('open'); }
 
 function switchTab(name, btn) {
@@ -1060,9 +1128,10 @@ function truncate(s,n) { return s.length>n ? s.slice(0,n)+'…' : s; }
 function setValue(id, val) { const el = document.getElementById(id); if (el) el.value = val; }
 function setElText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
 
-/* ============================================
+/* ========================================
    DEFAULTS
-   ============================================ */
+   ======================================== */
+
 function getDefaultData() {
   return {
     songs:[
@@ -1112,8 +1181,17 @@ function getDefaultData() {
   };
 }
 
-/* INIT */
-loadData();
+/* ========================================
+   INIT
+   ======================================== */
+
+async function initAdmin() {
+  await initDB();
+  await loadData();
+  buildSlides();
+}
+
+initAdmin();
 </script>
 </body>
 </html>
