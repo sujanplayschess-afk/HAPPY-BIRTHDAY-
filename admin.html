@@ -1,104 +1,472 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Admin — For Her</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet"/>
-<style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#09080f;--surface:#111019;--surface2:#161524;--surface3:#1c1b2e;--border:rgba(255,255,255,0.07);--border-hover:rgba(255,255,255,0.13);--gold:#e8a96a;--gold-dim:rgba(232,169,106,0.12);--gold-border:rgba(232,169,106,0.22);--white:#f0e8da;--dim:rgba(240,232,218,0.42);--dim2:rgba(240,232,218,0.22);--danger:#c45c5c;--success:#5aac7e;--ph:'Playfair Display',serif;--fb:'Jost',sans-serif;}
-body{background:var(--bg);color:var(--white);font-family:var(--fb);font-weight:300;min-height:100vh;padding-bottom:80px;}
-header{display:flex;align-items:center;justify-content:space-between;padding:20px 36px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(9,8,15,.95);backdrop-filter:blur(12px);z-index:100;}
-.logo{display:flex;align-items:center;gap:14px;}
-.logo-icon{width:30px;height:30px;border:1px solid var(--gold-border);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.logo-icon::after{content:'';width:0;height:0;border-left:8px solid var(--gold);border-top:4.5px solid transparent;border-bottom:4.5px solid transparent;margin-left:2px;}
-.logo-text{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);}
-.logo-text strong{color:var(--white);font-weight:400;}
-.header-right{display:flex;gap:10px;align-items:center;}
-.status{font-size:10px;letter-spacing:.15em;text-transform:uppercase;padding:6px 14px;border-radius:10px;background:rgba(90,172,126,0.12);border:1px solid rgba(90,172,126,0.25);color:var(--success);}
+<script>
+// ─────────────────────────────────────────────
+// ADMIN PANEL - Simple Save to Server
+// ─────────────────────────────────────────────
 
-.btn{padding:9px 22px;font-family:var(--fb);font-weight:300;font-size:10px;letter-spacing:.18em;text-transform:uppercase;border:none;border-radius:2px;cursor:pointer;transition:all .3s;line-height:1;}
-.btn-primary{background:var(--gold);color:#09080f;font-weight:500;}
-.btn-primary:hover{filter:brightness(1.08);}
-.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--dim);}
-.btn-ghost:hover{border-color:var(--gold-border);color:var(--gold);}
-.btn-danger{background:transparent;border:1px solid rgba(196,92,92,.25);color:var(--danger);padding:6px 14px;font-size:9px;}
-.btn-danger:hover{background:rgba(196,92,92,.08);}
-.btn-add{display:block;width:100%;padding:13px;background:var(--gold-dim);border:1px dashed rgba(232,169,106,.25);border-radius:2px;color:rgba(232,169,106,.6);font-family:var(--fb);font-size:10px;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;transition:all .3s;margin-top:14px;}
-.btn-add:hover{background:rgba(232,169,106,.1);color:var(--gold);border-color:var(--gold-border);}
+let data = { songs: [], slides: [], endCard: {}, page: {} };
+let viewers = 0;
 
-main{max-width:1180px;margin:0 auto;padding:36px 28px;}
+// Load from server
+async function loadData() {
+  try {
+    const res = await fetch('/api/state');
+    if (res.ok) {
+      data = await res.json();
+      render();
+      console.log('✓ Loaded');
+    }
+  } catch (e) {
+    console.log('Starting fresh');
+    data = getDefaultData();
+    render();
+  }
+  
+  // Check viewer count
+  checkViewers();
+  setInterval(checkViewers, 2000);
+}
 
-.tab-bar{display:flex;border-bottom:1px solid var(--border);margin-bottom:36px;gap:2px;flex-wrap:wrap;}
-.tab{padding:12px 24px;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--dim2);cursor:pointer;border-bottom:2px solid transparent;transition:all .3s;background:none;border-top:none;border-left:none;border-right:none;font-family:var(--fb);font-weight:300;}
-.tab:hover{color:var(--dim);}
-.tab.active{color:var(--gold);border-bottom-color:var(--gold);}
-.tab-content{display:none;}
-.tab-content.active{display:block;}
+async function checkViewers() {
+  try {
+    const res = await fetch('/api/viewers');
+    const result = await res.json();
+    viewers = result.count;
+    document.getElementById('stat-viewers').textContent = viewers;
+  } catch (e) {}
+}
 
-.slides-list{display:flex;flex-direction:column;gap:14px;}
-.slide-card{background:var(--surface);border:1px solid var(--border);border-radius:3px;overflow:hidden;transition:border-color .25s;}
-.slide-card:hover{border-color:var(--border-hover);}
-.slide-card.open{border-color:rgba(232,169,106,.18);}
+// 🔴 SAVE TO SERVER (sends to all viewers)
+async function saveToServer() {
+  try {
+    const res = await fetch('/api/state', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    
+    const result = await res.json();
+    if (result.ok) {
+      toast(`✓ Sent to ${viewers} viewer${viewers !== 1 ? 's' : ''}`);
+      console.log(`📤 Sent to ${viewers} viewers`);
+    }
+  } catch (e) {
+    toast('❌ Failed to send');
+    console.error(e);
+  }
+}
 
-.slide-card-header{display:flex;align-items:center;gap:14px;padding:15px 22px;cursor:pointer;border-bottom:1px solid transparent;transition:border-color .2s;}
-.slide-card.open .slide-card-header{border-bottom-color:var(--border);}
+// ─────────────────────────────────────────────
+// UPDATE HANDLERS (Auto-save)
+// ─────────────────────────────────────────────
 
-.slide-num{width:26px;height:26px;border:1px solid var(--gold-border);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--gold);flex-shrink:0;font-weight:300;}
-.slide-card-title{flex:1;font-size:13px;letter-spacing:.02em;color:var(--white);}
-.slide-card-meta{font-size:10px;color:var(--dim2);letter-spacing:.1em;}
-.slide-toggle{color:var(--dim2);transition:transform .3s;font-size:10px;}
-.slide-card.open .slide-toggle{transform:rotate(180deg);}
+function updateSlide(i, key, val) {
+  if (!data.slides[i]) return;
+  data.slides[i][key] = val;
+  saveToServer();
+}
 
-.slide-card-body{display:none;padding:22px;}
-.slide-card.open .slide-card-body{display:block;}
+function updateLine(slideIdx, lineIdx, key, val) {
+  if (!data.slides[slideIdx].lines) data.slides[slideIdx].lines = [];
+  if (!data.slides[slideIdx].lines[lineIdx]) data.slides[slideIdx].lines[lineIdx] = {};
+  data.slides[slideIdx].lines[lineIdx][key] = val;
+  saveToServer();
+}
 
-.songs-list{display:flex;flex-direction:column;gap:12px;}
-.song-card{background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:18px 22px;transition:border-color .25s;}
-.song-card:hover{border-color:var(--border-hover);}
+function updateSong(i, key, val) {
+  if (!data.songs[i]) return;
+  data.songs[i][key] = val;
+  saveToServer();
+}
 
-.song-header{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
-.song-num{width:30px;height:30px;background:var(--gold-dim);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--ph);font-style:italic;font-size:13px;color:var(--gold);flex-shrink:0;}
-.song-label{flex:1;font-size:14px;color:var(--white);}
-.song-idx{font-size:9px;color:var(--gold);letter-spacing:.15em;background:rgba(232,169,106,.08);padding:3px 10px;border-radius:10px;text-transform:uppercase;}
+function updateEndCard(key, val) {
+  if (!data.endCard) data.endCard = {};
+  data.endCard[key] = val;
+  setPreview(data.endCard);
+  saveToServer();
+}
 
-.audio-player-mini{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:10px 14px;margin-top:8px;}
-.audio-player-mini audio{flex:1;height:28px;filter:invert(0.8) sepia(1) saturate(0.4) hue-rotate(340deg);}
-.audio-badge{font-size:9px;letter-spacing:.12em;background:rgba(90,172,126,.12);border:1px solid rgba(90,172,126,.25);color:var(--success);padding:3px 10px;border-radius:10px;white-space:nowrap;flex-shrink:0;}
+function updatePage(key, val) {
+  if (!data.page) data.page = {};
+  data.page[key] = val;
+  refreshMockPreview();
+  saveToServer();
+}
 
-.audio-upload-row{display:flex;gap:8px;align-items:stretch;}
-.audio-upload-row input[type="text"]{flex:1;}
-.audio-upload-label{flex-shrink:0;padding:9px 16px;background:var(--gold-dim);border:1px dashed rgba(232,169,106,.28);border-radius:2px;color:rgba(232,169,106,.6);font-family:var(--fb);font-size:10px;letter-spacing:.15em;cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:6px;white-space:nowrap;}
-.audio-upload-label:hover{background:rgba(232,169,106,.12);color:var(--gold);}
-.file-input{display:none;}
+function addSlide() {
+  data.slides.push({
+    img:'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1600&q=85',
+    tint:'rgba(5,5,20,0.32)', kenBurns:'zoom-in',
+    pos:'pos-bc', song:0, dur:9000,
+    lines:[{ text:'Write something beautiful.', delay:1, color:'gold' }]
+  });
+  saveToServer();
+  renderSlides();
+}
 
-.audio-empty{display:flex;align-items:center;gap:12px;background:var(--surface2);border:1px dashed rgba(232,169,106,.18);border-radius:2px;padding:12px 14px;margin-top:8px;}
-.audio-empty-icon{font-size:18px;opacity:.35;flex-shrink:0;}
-.audio-empty-text{font-size:11px;color:var(--dim2);line-height:1.5;}
+function deleteSlide(i) {
+  if (!confirm(`Delete slide ${i+1}?`)) return;
+  data.slides.splice(i, 1);
+  saveToServer();
+  renderSlides();
+}
 
-.endcard-wrap{background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:28px;}
-.preview-card{background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:28px;text-align:center;margin-bottom:28px;}
-.preview-pre{font-size:9px;letter-spacing:.4em;text-transform:uppercase;color:rgba(232,169,106,.5);margin-bottom:10px;}
-.preview-title{font-family:var(--ph);font-style:italic;font-size:clamp(2rem,5vw,3.5rem);color:var(--white);line-height:1;margin-bottom:6px;}
-.preview-sub{font-family:var(--ph);font-style:italic;font-size:1.1rem;color:rgba(232,169,106,.6);}
-.preview-orn{display:flex;align-items:center;justify-content:center;gap:12px;margin:18px 0;}
-.preview-line{width:50px;height:1px;}
-.preview-line.l{background:linear-gradient(to right,transparent,rgba(232,169,106,.3));}
-.preview-line.r{background:linear-gradient(to left,transparent,rgba(232,169,106,.3));}
-.preview-diamond{width:4px;height:4px;background:var(--gold);transform:rotate(45deg);}
-.preview-msg{font-family:var(--ph);font-style:italic;font-size:1rem;color:rgba(240,232,218,.4);line-height:1.7;}
+function addSong() {
+  data.songs.push({ title:'New Song — Artist', start:0, volume:0.85, fadeIn:800, fadeOut:1200 });
+  saveToServer();
+  renderSongs();
+}
 
-.page-editor-wrap{background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:28px;}
-.page-preview-mock{background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:32px;text-align:center;margin-bottom:28px;position:relative;overflow:hidden;}
-.page-preview-mock::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(232,169,106,0.06) 0%,transparent 70%);}
-.mock-eyebrow{font-size:8px;letter-spacing:.5em;text-transform:uppercase;color:rgba(232,169,106,.4);margin-bottom:16px;}
-.mock-title{font-family:var(--ph);font-style:italic;font-size:clamp(1.8rem,5vw,3rem);color:var(--white);line-height:1.1;margin-bottom:8px;}
-.mock-sub{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim2);margin-bottom:20px;}
-.mock-desc{font-size:13px;color:var(--dim);line-height:1.8;max-width:480px;margin:0 auto 20px;}
-.mock-btn{display:inline-block;padding:12px 36px;background:var(--gold);color:#09080f;font-family:var(--fb);font-size:10px;letter-spacing:.22em;text-transform:uppercase;font-weight:500;border-radius:2px;}
-.mock-footnote{font-size:10px;color:var(--dim2);margin-top:14px;letter-spacing:.1em;}
+function deleteSong(i) {
+  if (!confirm(`Delete Song ${i+1}?`)) return;
+  data.songs.splice(i, 1);
+  data.slides.forEach(sl => { if (sl.song >= data.songs.length) sl.song = Math.max(0, data.songs.length-1); });
+  saveToServer();
+  renderSongs();
+}
 
-.section-title{font-size:9px;letter-spacing:.38em;text-transform:uppercase;color:rgba(232,169,106,.5);margin-bottom:18px;display:flex;align-items:center;gap:10
+function handleAudioUpload(songIdx, input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const maxMB = 10;
+  if (file.size > maxMB * 1024 * 1024) {
+    toast(`File too large — max ${maxMB}MB`);
+    input.value = '';
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    const dataUrl = e.target.result;
+    data.songs[songIdx].audioData = dataUrl;
+    data.songs[songIdx].audioUrl = dataUrl;
+    data.songs[songIdx].fileName = file.name;
+    
+    if (!data.songs[songIdx].title || data.songs[songIdx].title === 'New Song — Artist') {
+      const nameNoExt = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
+      data.songs[songIdx].title = nameNoExt;
+    }
+    
+    saveToServer();
+    renderSongs();
+    toast(`📤 ${file.name} sent to viewers`);
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearAudio(songIdx) {
+  if (!confirm('Remove audio?')) return;
+  delete data.songs[songIdx].audioData;
+  delete data.songs[songIdx].audioUrl;
+  delete data.songs[songIdx].fileName;
+  saveToServer();
+  renderSongs();
+}
+
+function handleImgUpload(slideIdx, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    data.slides[slideIdx].img = e.target.result;
+    saveToServer();
+    const urlInput = document.getElementById(`img-url-${slideIdx}`);
+    if (urlInput) urlInput.value = file.name + ' (uploaded)';
+    previewImg(slideIdx, e.target.result);
+    toast('📤 Image sent to viewers');
+  };
+  reader.readAsDataURL(file);
+}
+
+function previewImg(slideIdx, src) {
+  const prev = document.getElementById(`img-prev-${slideIdx}`);
+  if (!prev) return;
+  if (src && src.length > 5) { prev.src = src; prev.classList.add('show'); }
+  else prev.classList.remove('show');
+}
+
+// ─────────────────────────────────────────────
+// RENDER (All rendering functions - same as before)
+// ─────────────────────────────────────────────
+
+function render() {
+  renderSlides();
+  renderSongs();
+  renderEndCard();
+  renderPageEditor();
+  updateStats();
+}
+
+function updateStats() {
+  document.getElementById('stat-slides').textContent = data.slides.length;
+  const totalMs = (data.slides||[]).reduce((s,sl) => s+(sl.dur||9000), 0);
+  const mins = Math.floor(totalMs/60000);
+  const secs = Math.round((totalMs%60000)/1000);
+  document.getElementById('stat-dur').textContent = `${mins}m ${secs}s`;
+}
+
+function renderSlides() {
+  const list = document.getElementById('slides-list');
+  list.innerHTML = '';
+  (data.slides||[]).forEach((s,i) => {
+    const card = document.createElement('div');
+    card.className = 'slide-card';
+    card.dataset.index = i;
+    const songObj = data.songs[s.song];
+    const songTitle = songObj ? (songObj.title || `Song ${(s.song||0)+1}`).split(' — ')[0] : `Song ${(s.song||0)+1}`;
+    const firstLine = (s.lines && s.lines[0] && s.lines[0].text) ? s.lines[0].text : 'Slide';
+
+    card.innerHTML = `
+      <div class="slide-card-header" onclick="toggleCard(this)">
+        <div class="slide-num">${i+1}</div>
+        <div class="slide-card-title">${escHtml(truncate(firstLine,42))}</div>
+        <div class="slide-card-meta">${(s.dur||9000)/1000|0}s &nbsp;·&nbsp; ${escHtml(songTitle)}</div>
+        <div class="slide-toggle">▾</div>
+      </div>
+      <div class="slide-card-body">
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Background Image</label>
+            <div class="upload-row">
+              <input type="url" id="img-url-${i}" placeholder="https://..."
+                value="${escAttr(s.img||'')}"
+                oninput="updateSlide(${i},'img',this.value);previewImg(${i},this.value)"/>
+              <label class="upload-label" for="img-file-${i}">↑ Upload</label>
+              <input class="file-input" type="file" id="img-file-${i}" accept="image/*" onchange="handleImgUpload(${i},this)"/>
+            </div>
+            <img id="img-prev-${i}" class="img-preview" src="${escAttr(s.img||'')}"
+              onerror="this.classList.remove('show')" onload="this.classList.add('show')" alt=""/>
+          </div>
+
+          <div class="form-group">
+            <label>Text Position</label>
+            <select onchange="updateSlide(${i},'pos',this.value)">
+              ${['pos-bc','pos-bl','pos-br','pos-mc','pos-ml','pos-tc','pos-tr','pos-fc'].map(v=>
+                `<option value="${v}" ${(s.pos||'pos-bc')===v?'selected':''}>${v.replace('pos-','')}</option>`
+              ).join('')}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Motion</label>
+            <select onchange="updateSlide(${i},'kenBurns',this.value)">
+              ${[['zoom-in','Zoom In'],['zoom-out','Zoom Out'],['pan-right','Pan Right'],['pan-left','Pan Left']].map(([v,l])=>
+                `<option value="${v}" ${(s.kenBurns||'zoom-in')===v?'selected':''}>${l}</option>`
+              ).join('')}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Music Track</label>
+            <select onchange="updateSlide(${i},'song',+this.value)">
+              ${(data.songs||[]).map((sg,si)=>
+                `<option value="${si}" ${(s.song||0)===si?'selected':''}>${si+1}. ${escHtml(sg.title||'Song')}</option>`
+              ).join('')}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Duration (ms)</label>
+            <input type="number" min="3000" max="30000" step="500"
+              value="${s.dur||9000}" onchange="updateSlide(${i},'dur',+this.value)"/>
+          </div>
+
+          <div class="form-group full">
+            <label>Lyrics</label>
+            <div class="lines-editor" id="lines-editor-${i}">
+              ${renderLineRows(i, s.lines||[])}
+            </div>
+            <button class="add-line-btn" onclick="addLine(${i})">+ Add Line</button>
+          </div>
+        </div>
+        <div class="form-footer">
+          <button class="btn btn-danger" onclick="deleteSlide(${i})">Delete</button>
+          <button class="btn btn-ghost" style="padding:6px 14px;font-size:9px" onclick="duplicateSlide(${i})">⧉ Duplicate</button>
+        </div>
+      </div>`;
+    list.appendChild(card);
+  });
+  updateStats();
+}
+
+function renderLineRows(slideIdx, lines) {
+  const colors = ['(default)','gold','rose','blue','dim'];
+  const sizes  = ['(normal)','hero','big','med','sm','xs'];
+  const delays = [0,1,2,3,4,5];
+  return lines.map((ln, li) => `
+    <div class="line-row">
+      <input type="text" value="${escAttr(ln.text||'')}"
+        oninput="updateLine(${slideIdx},${li},'text',this.value)"
+        placeholder="Text…"/>
+      <select onchange="updateLine(${slideIdx},${li},'color',this.value)">
+        ${colors.map(c=>c==='(default)'
+          ? `<option value="" ${!(ln.color)?'selected':''}>color</option>`
+          : `<option value="${c}" ${(ln.color||'')===c?'selected':''}>${c}</option>`
+        ).join('')}
+      </select>
+      <select onchange="updateLine(${slideIdx},${li},'size',this.value)">
+        ${sizes.map(sz=>sz==='(normal)'
+          ? `<option value="" ${!(ln.size)?'selected':''}>size</option>`
+          : `<option value="${sz}" ${(ln.size||'')===sz?'selected':''}>${sz}</option>`
+        ).join('')}
+      </select>
+      <button class="del-line" onclick="deleteLine(${slideIdx},${li})">×</button>
+    </div>`).join('');
+}
+
+function addLine(slideIdx) {
+  if (!data.slides[slideIdx].lines) data.slides[slideIdx].lines = [];
+  data.slides[slideIdx].lines.push({ text:'', delay: 1 });
+  saveToServer();
+  renderSlides();
+}
+
+function deleteLine(slideIdx, lineIdx) {
+  data.slides[slideIdx].lines.splice(lineIdx, 1);
+  saveToServer();
+  renderSlides();
+}
+
+function duplicateSlide(i) {
+  const copy = JSON.parse(JSON.stringify(data.slides[i]));
+  data.slides.splice(i+1, 0, copy);
+  saveToServer();
+  renderSlides();
+}
+
+function renderSongs() {
+  const list = document.getElementById('songs-list');
+  list.innerHTML = '';
+  (data.songs||[]).forEach((s, i) => {
+    const hasAudio = !!(s.audioData || s.audioUrl);
+    const card = document.createElement('div');
+    card.className = 'song-card';
+    card.innerHTML = `
+      <div class="song-header">
+        <div class="song-num">${i+1}</div>
+        <div class="song-label">${escHtml(s.title||'Song')}</div>
+        <div class="song-idx">Index ${i}</div>
+        <button class="btn btn-danger" onclick="deleteSong(${i})">Remove</button>
+      </div>
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Song Title</label>
+          <input type="text" value="${escAttr(s.title||'')}" placeholder="Song — Artist"
+            oninput="updateSong(${i},'title',this.value)"/>
+        </div>
+
+        <div class="form-group full">
+          <label>Audio File</label>
+          <div class="audio-upload-row">
+            <input type="text" id="audio-name-${i}" readonly
+              value="${escAttr(s.fileName || '')}"
+              placeholder="No file selected"/>
+            <label class="audio-upload-label" for="audio-file-${i}">
+              ♪ ${hasAudio ? 'Replace' : 'Upload'}
+            </label>
+            <input class="file-input" type="file" id="audio-file-${i}"
+              accept="audio/*"
+              onchange="handleAudioUpload(${i},this)"/>
+          </div>
+          ${hasAudio ? `
+            <div class="audio-player-mini">
+              <audio controls preload="metadata">
+                <source src="${escAttr(s.audioData||s.audioUrl||'')}" type="audio/mpeg">
+              </audio>
+              <button class="btn btn-danger" style="padding:5px 10px;font-size:9px" onclick="clearAudio(${i})">✕</button>
+            </div>` : ''}
+        </div>
+
+        <div class="form-group">
+          <label>Volume</label>
+          <input type="number" min="0" max="1" step="0.05" value="${s.volume||0.85}"
+            onchange="updateSong(${i},'volume',+this.value)"/>
+        </div>
+      </div>`;
+    list.appendChild(card);
+  });
+}
+
+function renderEndCard() {
+  const ec = data.endCard || {};
+  setValue('ec-pre',   ec.pre   || '');
+  setValue('ec-title', ec.title || '');
+  setValue('ec-sub',   ec.sub   || '');
+  setValue('ec-msg',   ec.msg   || '');
+  setPreview(ec);
+}
+
+function setPreview(ec) {
+  setElText('prev-pre',   ec.pre   || 'With love, always');
+  setElText('prev-title', ec.title || 'Happy Birthday.');
+  setElText('prev-sub',   ec.sub   || 'You deserve the whole world.');
+  setElText('prev-msg',   (ec.msg  || '').replace(/\\n/g,'\n'));
+}
+
+function renderPageEditor() {
+  const pg = data.page || {};
+  setValue('pg-eyebrow',  pg.eyebrow  || '');
+  setValue('pg-title',    pg.title    || '');
+  setValue('pg-sub',      pg.sub      || '');
+  setValue('pg-btn',      pg.btn      || '');
+  setValue('pg-desc',     pg.desc     || '');
+  setValue('pg-footnote', pg.footnote || '');
+  setValue('pg-tabtitle', pg.tabTitle || '');
+  setValue('pg-name',     pg.name     || '');
+  setValue('pg-color-accent', pg.colorAccent || '#e8a96a');
+  setValue('pg-color-bg',     pg.colorBg     || '#09080f');
+  refreshMockPreview();
+}
+
+function refreshMockPreview() {
+  const pg = data.page || {};
+  setElText('mock-eyebrow', pg.eyebrow  || 'A Gift in Sound & Vision');
+  setElText('mock-title',   pg.title    || 'For Her.');
+  setElText('mock-sub',     pg.sub      || 'A love letter in music');
+  setElText('mock-desc',    pg.desc     || 'Every song chosen with intention...');
+  setElText('mock-btn',     pg.btn      || 'Begin');
+}
+
+function syncColor(key, val) {
+  updatePage(key === 'accent' ? 'colorAccent' : 'colorBg', val);
+}
+
+// ─────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────
+function toggleCard(header) { header.parentElement.classList.toggle('open'); }
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+}
+function previewSite() { window.open('/', '_blank'); }
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escAttr(s) { return String(s).replace(/"/g,'&quot;'); }
+function truncate(s,n) { return s.length>n ? s.slice(0,n)+'…' : s; }
+function setValue(id, val) { const el = document.getElementById(id); if (el) el.value = val; }
+function setElText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+
+function getDefaultData() {
+  return {
+    songs: [
+      { title: "Song 1", start: 0, volume: 0.85 },
+      { title: "Song 2", start: 0, volume: 0.85 }
+    ],
+    slides: [
+      {img:"https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1600&q=85",kenBurns:"zoom-in",pos:"pos-bc",song:0,dur:9000,lines:[{text:"Start here",delay:1,color:"gold"}]}
+    ],
+    endCard: { pre:"With love", title:"Happy Birthday", sub:"You rock", msg:"This is for you" },
+    page: { eyebrow:"Gift",title:"For You",btn:"Begin",name:"You" }
+  };
+}
+
+loadData();
+</script>
