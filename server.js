@@ -24,7 +24,7 @@ wss.on('connection', (ws) => {
   const viewerId = uuid();
   viewers.set(viewerId, { id: viewerId, ws });
 
-  console.log(`Viewer connected: ${viewerId.substring(0, 8)} (Total: ${viewers.size})`);
+  console.log(`👁️  Viewer connected: ${viewerId.substring(0, 8)} (Total: ${viewers.size})`);
 
   ws.send(JSON.stringify({
     type: 'INIT',
@@ -35,7 +35,7 @@ wss.on('connection', (ws) => {
 
   ws.on('close', () => {
     viewers.delete(viewerId);
-    console.log(`Viewer disconnected (Total: ${viewers.size})`);
+    console.log(`✗ Viewer disconnected (Total: ${viewers.size})`);
   });
 
   ws.on('error', (err) => {
@@ -71,7 +71,7 @@ app.post('/api/state', (req, res) => {
     timestamp: Date.now()
   });
   res.json({ ok: true, viewers: count });
-  console.log(`State updated, broadcast to ${count} viewers`);
+  console.log(`📤 State updated, broadcast to ${count} viewers`);
 });
 
 app.get('/api/viewers', (req, res) => {
@@ -89,8 +89,13 @@ server.listen(PORT, () => {
 ║  🎁 FOR HER — GIFT SERVER         ║
 ╠════════════════════════════════════╣
 ║  Server running on port ${PORT}         ║
-║  Admin: /admin.html                ║
-║  Viewer: /                         ║
+║  Admin: http://localhost:${PORT}/admin ║
+║  Viewer: http://localhost:${PORT}      ║
 ╚════════════════════════════════════╝
   `);
+});
+
+process.on('SIGINT', () => {
+  console.log('\n✓ Shutting down gracefully...');
+  process.exit(0);
 });
