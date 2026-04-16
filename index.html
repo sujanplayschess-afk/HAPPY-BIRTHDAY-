@@ -1,5 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>For Her</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,300;1,400;1,500&family=Jost:wght@200;300;400&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--ink:#080610;--warm:#f5ede0;--amber:#e8a96a;--ph:'Playfair Display',serif;--fb:'Jost',sans-serif;}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-family:var(--fb);color:var(--warm);-webkit-font-smoothing:antialiased;}
+#loader{position:fixed;inset:0;z-index:8000;background:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;}
+#loader.gone{opacity:0;visibility:hidden;pointer-events:none;}
+.ld-petal{display:flex;gap:5px;align-items:flex-end;}
+.ld-petal span{width:2px;border-radius:2px;background:rgba(232,169,106,.4);animation:petalanim 1.1s ease-in-out infinite alternate;}
+.ld-petal span:nth-child(2){animation-delay:.15s;height:14px;}
+.ld-petal span:nth-child(3){animation-delay:.3s;height:10px;}
+.ld-petal span:nth-child(4){animation-delay:.1s;height:16px;}
+.ld-petal span:nth-child(5){animation-delay:.25s;height:8px;}
+.ld-petal span{height:6px;}
+@keyframes petalanim{from{transform:scaleY(.2);opacity:.2}to{transform:scaleY(1);opacity:1}}
+.ld-txt{font-weight:200;font-size:9px;letter-spacing:.55em;text-transform:uppercase;color:rgba(232,169,106,.3);}
+#intro{position:fixed;inset:0;z-index:5000;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--ink);transition:opacity 3s ease;}
+#intro.gone{opacity:0;visibility:hidden;pointer-events:none;}
+.i-title{font-family:var(--ph);font-style:italic;font-weight:400;font-size:clamp(4.5rem,11vw,9rem);color:var(--warm);line-height:.9;text-align:center;margin:.8rem 0 .2rem;}
+.i-title .for-word{display:block;font-size:.35em;font-style:normal;font-weight:200;font-family:var(--fb);letter-spacing:.6em;text-transform:uppercase;color:rgba(245,237,224,.35);margin-bottom:.3em;}
+.i-ornament{display:flex;align-items:center;gap:16px;margin:1.8rem 0 1.5rem;}
+.i-orn-l{width:90px;height:1px;background:linear-gradient(to right,transparent,rgba(232,169,106,.25));}
+.i-orn-r{width:90px;height:1px;background:linear-gradient(to left,transparent,rgba(232,169,106,.25));}
+.i-orn-c{display:flex;gap:5px;align-items:center;}
+.i-dot{width:3px;height:3px;background:var(--amber);border-radius:50%;}
+.i-dot.big{width:5px;height:5px;}
+.i-sub{font-weight:200;font-size:9px;letter-spacing:.32em;text-transform:uppercase;color:rgba(245,237,224,.22);margin-bottom:3.5rem;}
+.pbtn{display:flex;align-items:center;gap:16px;padding:16px 50px;background:transparent;border:1px solid rgba(232,169,106,.2);cursor:pointer;color:rgba(232,169,106,.7);font-family:var(--fb);font-weight:200;font-size:9px;letter-spacing:.42em;text-transform:uppercase;border-radius:2px;transition:all .7s;}
+.pbtn:hover{border-color:var(--amber);color:var(--amber);}
+#pw{position:fixed;top:0;left:0;right:0;z-index:4000;height:1px;background:rgba(245,237,224,.04);opacity:0;transition:opacity 1s;}
+#pw.on{opacity:1;}
+#pb{height:100%;width:0%;background:linear-gradient(to right,rgba(232,160,162,.5),var(--amber));box-shadow:0 0 6px rgba(232,169,106,.4);}
+#ctr{position:fixed;bottom:26px;right:28px;z-index:4000;font-weight:200;font-size:8px;letter-spacing:.3em;color:rgba(245,237,224,.15);opacity:0;transition:opacity 1s;}
+#ctr.on{opacity:1;}
+#mbars{position:fixed;bottom:24px;left:28px;z-index:4000;display:flex;align-items:flex-end;gap:3px;height:14px;opacity:0;transition:opacity .8s;}
+#mbars.on{opacity:1;}
+.mb{width:2px;border-radius:1px;background:rgba(232,169,106,.35);animation:mba 1s ease-in-out infinite alternate;}
+.mb:nth-child(1){height:4px;animation-duration:.82s;}
+.mb:nth-child(2){height:10px;animation-duration:1.05s;animation-delay:.1s;}
+.mb:nth-child(3){height:6px;animation-duration:.7s;animation-delay:.22s;}
+.mb:nth-child(4){height:13px;animation-duration:1.18s;animation-delay:.06s;}
+.mb:nth-child(5){height:4px;animation-duration:.9s;animation-delay:.18s;}
+@keyframes mba{from{transform:scaleY(.15)}to{transform:scaleY(1)}}
+#stage{position:fixed;inset:0;z-index:1;}
+.slide{position:absolute;inset:0;opacity:0;transition:opacity 2.2s cubic-bezier(.4,0,.2,1);}
+.slide.active{opacity:1;}
+.sbg{position:absolute;inset:-12%;background-size:cover;background-position:center;}
+.kb-zi{animation:kbZI 24s ease-out forwards;}
+.kb-zo{animation:kbZO 24s ease-out forwards;}
+.kb-pr{animation:kbPR 24s ease-out forwards;}
+.kb-pl{animation:kbPL 24s ease-out forwards;}
+@keyframes kbZI{from{transform:scale(1)}to{transform:scale(1.16)}}
+@keyframes kbZO{from{transform:scale(1.16)}to{transform:scale(1)}}
+@keyframes kbPR{from{transform:scale(1.1) translateX(-4%)}to{transform:scale(1.1) translateX(4%)}}
+@keyframes kbPL{from{transform:scale(1.1) translateX(4%)}to{transform:scale(1.1) translateX(-4%)}}
+.sovl{position:absolute;inset:0;}
+.stint{position:absolute;inset:0;mix-blend-mode:multiply;}
+.sbar-t{position:absolute;top:0;left:0;right:0;height:12%;background:linear-gradient(to bottom,rgba(8,6,16,.8),transparent);}
+.sbar-b{position:absolute;bottom:0;left:0;right:0;height:28%;background:linear-gradient(to top,rgba(8,6,16,.95),rgba(8,6,16,.35) 60%,transparent);}
+.sbar-l{position:absolute;top:0;bottom:0;left:0;width:8%;background:linear-gradient(to right,rgba(8,6,16,.45),transparent);}
+.sbar-r{position:absolute;top:0;bottom:0;right:0;width:8%;background:linear-gradient(to left,rgba(8,6,16,.45),transparent);}
+.lw{position:absolute;z-index:10;max-width:min(860px,88vw);}
+.pos-bc{bottom:11%;left:50%;transform:translateX(-50%);text-align:center;}
+.pos-bl{bottom:11%;left:7%;text-align:left;}
+.pos-br{bottom:11%;right:7%;text-align:right;}
+.pos-mc{top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;}
+.pos-ml{top:50%;left:7%;transform:translateY(-50%);text-align:left;}
+.pos-tc{top:18%;left:50%;transform:translateX(-50%);text-align:center;}
+.pos-tr{top:18%;right:7%;text-align:right;}
+.ll{display:block;font-family:var(--ph);font-style:italic;font-weight:400;font-size:clamp(1.6rem,3.6vw,3.2rem);line-height:1.4;color:var(--warm);text-shadow:0 2px 80px rgba(0,0,0,1),0 1px 16px rgba(0,0,0,.9);opacity:0;transform:translateY(24px);transition:opacity 1.5s cubic-bezier(.25,.46,.45,.94),transform 1.5s cubic-bezier(.25,.46,.45,.94);}
+.ll.in{opacity:1;transform:translateY(0);}
+.ll.gold{color:var(--amber);}
+.ll.rose{color:#f0b8b8;}
+.ll.blue{color:#8ac4e0;}
+.ll.dim{color:rgba(245,237,224,.45);}
+.ll.hero{font-size:clamp(3.2rem,8vw,7.5rem);font-weight:500;line-height:1;}
+.ll.big{font-size:clamp(2.2rem,5.2vw,5.2rem);font-weight:400;line-height:1.1;}
+.ll.med{font-size:clamp(1.4rem,2.8vw,2.6rem);}
+.ll.sm{font-size:clamp(.95rem,1.7vw,1.5rem);font-style:normal;font-family:var(--fb);font-weight:200;letter-spacing:.06em;}
+.ll.xs{font-size:clamp(.7rem,1vw,.95rem);font-style:normal;font-family:var(--fb);font-weight:200;letter-spacing:.32em;text-transform:uppercase;}
+.d1{transition-delay:.35s}
+.d2{transition-delay:.9s}
+.d3{transition-delay:1.5s}
+.d4{transition-delay:2.1s}
+#ec{position:fixed;inset:0;z-index:4500;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--ink);opacity:0;pointer-events:none;transition:opacity 3s ease;}
+#ec.on{opacity:1;pointer-events:all;}
+.ec-inner{text-align:center;padding:0 32px;}
+.ec-name{font-family:var(--ph);font-style:italic;font-weight:400;font-size:clamp(3.5rem,9vw,8.5rem);color:var(--warm);line-height:.95;margin:.6rem 0 .3rem;opacity:0;}
+#ec.on .ec-name{animation:riseIn 1.8s 1.1s forwards;}
+.ec-msg{font-family:var(--ph);font-style:italic;font-weight:400;font-size:clamp(1rem,2vw,1.6rem);color:rgba(245,237,224,.5);line-height:1.8;max-width:480px;margin:0 auto;opacity:0;}
+#ec.on .ec-msg{animation:fadeIn 1.4s 2.8s forwards;}
+.rbtn{margin-top:3rem;padding:13px 40px;background:transparent;border:1px solid rgba(232,169,106,.18);color:rgba(232,169,106,.4);font-family:var(--fb);font-weight:200;font-size:9px;letter-spacing:.35em;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:all .5s;opacity:0;}
+#ec.on .rbtn{animation:fadeIn .8s 4s forwards;}
+.rbtn:hover{border-color:var(--amber);color:var(--amber);}
+@keyframes riseIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@media(max-width:640px){.i-title{font-size:clamp(3rem,9vw,5rem);}.ll.hero{font-size:clamp(2.2rem,10vw,4rem);}}
+</style>
+</head>
+<body>
+
+<div id="loader">
+  <div class="ld-petal">
+    <span></span><span></span><span></span><span></span><span></span>
+  </div>
+  <span class="ld-txt">Loading...</span>
+</div>
+
+<div id="intro">
+  <h1 class="i-title">
+    <span class="for-word">for</span>
+    <span id="intro-name">You</span>
+  </h1>
+  <div class="i-ornament">
+    <div class="i-orn-l"></div>
+    <div class="i-orn-c">
+      <div class="i-dot"></div>
+      <div class="i-dot big"></div>
+      <div class="i-dot"></div>
+    </div>
+    <div class="i-orn-r"></div>
+  </div>
+  <p class="i-sub">Turn the volume up · Press play</p>
+  <button class="pbtn" id="playBtn">
+    <span>▶ Begin</span>
+  </button>
+</div>
+
+<div id="pw"><div id="pb"></div></div>
+<div id="ctr"></div>
+<div id="mbars">
+  <div class="mb"></div><div class="mb"></div><div class="mb"></div>
+  <div class="mb"></div><div class="mb"></div>
+</div>
+
+<div id="stage"></div>
+
+<div id="ec">
+  <div class="ec-inner">
+    <p class="ec-name" id="ec-name">Happy Birthday</p>
+    <p class="ec-msg" id="ec-msg">This is for you</p>
+    <button class="rbtn" id="replayBtn">Watch Again</button>
+  </div>
+</div>
+
 <script>
-const WS_URL = `ws://${window.location.host}`;
+const WS_URL = `wss://${window.location.host}`;
 let ws = null;
 let state = { slides:[], songs:[], endCard:{}, page:{} };
 let cur = -1, running = false, activeSng = -1;
@@ -7,15 +160,9 @@ let audioElements = [];
 
 function connectWebSocket() {
   ws = new WebSocket(WS_URL);
-
-  ws.onopen = () => {
-    console.log('✓ Connected');
-    document.getElementById('syncStatus').classList.add('on');
-  };
-
+  ws.onopen = () => console.log('Connected');
   ws.onmessage = (event) => {
     const msg = JSON.parse(event.data);
-
     if (msg.type === 'INIT') {
       state = msg.state;
       buildSlides();
@@ -23,29 +170,17 @@ function connectWebSocket() {
       renderEndCard();
       applyPageData();
       document.getElementById('loader').classList.add('gone');
-      console.log('✓ Loaded gift');
     }
-
-    // 🔴 WHEN YOU UPDATE IN ADMIN
     if (msg.type === 'CONTENT_UPDATED') {
       state = msg.state;
       buildSlides();
       setupAudio();
       renderEndCard();
       applyPageData();
-      console.log('📤 Gift updated!');
     }
   };
-
-  ws.onerror = () => {
-    console.error('Connection lost');
-    document.getElementById('syncStatus').classList.remove('on');
-  };
-
-  ws.onclose = () => {
-    document.getElementById('syncStatus').classList.remove('on');
-    setTimeout(connectWebSocket, 3000);
-  };
+  ws.onerror = () => console.error('Connection error');
+  ws.onclose = () => setTimeout(connectWebSocket, 3000);
 }
 
 function buildSlides() {
@@ -55,17 +190,17 @@ function buildSlides() {
     const d = document.createElement('div');
     d.className = 'slide';
     d.id = `sl-${i}`;
+    const kbMap = {'zoom-in':'kb-zi','zoom-out':'kb-zo','pan-right':'kb-pr','pan-left':'kb-pl'};
     const linesHTML = (s.lines||[]).map(l => {
-      const cls = ['ll', l.cls || `d${l.delay||1}`, l.color, l.size].filter(Boolean).join(' ');
+      const cls = ['ll', `d${l.delay||1}`, l.color, l.size].filter(Boolean).join(' ');
       return `<span class="${cls}">${escHtml(l.text)}</span>`;
     }).join('');
     d.innerHTML = `
-      <div class="sbg ${s.kb||'kb-zi'}" style="background-image:url('${escAttr(s.img)}')"></div>
+      <div class="sbg ${kbMap[s.kenBurns]||'kb-zi'}" style="background-image:url('${escAttr(s.img)}')"></div>
       <div class="sovl"></div>
       <div class="stint" style="background:${escAttr(s.tint||'rgba(0,0,0,0.26)')}"></div>
       <div class="sbar-t"></div><div class="sbar-b"></div>
       <div class="sbar-l"></div><div class="sbar-r"></div>
-      <div class="scene-n">${String(i+1).padStart(2,'0')}</div>
       <div class="lw ${s.pos||'pos-bc'}">${linesHTML}</div>`;
     stage.appendChild(d);
   });
@@ -89,16 +224,13 @@ function setupAudio() {
 
 function renderEndCard() {
   const ec = state.endCard || {};
-  setElText('ec-pre', ec.pre || 'With love');
-  setElText('ec-name', ec.title || 'Happy Birthday');
-  setElText('ec-year', ec.sub || 'You rock');
-  setElText('ec-msg', (ec.msg || '').replace(/\\n/g, '<br>'));
+  document.getElementById('ec-name').textContent = ec.title || 'Happy Birthday';
+  document.getElementById('ec-msg').textContent = (ec.msg || 'This is for you').replace(/\\n/g, '\n');
 }
 
 function applyPageData() {
   const pg = state.page || {};
-  setElText('intro-name', pg.name || 'You');
-  setElText('intro-btn', pg.btn || 'Begin');
+  document.getElementById('intro-name').textContent = pg.name || 'You';
   document.title = `For ${pg.name || 'You'}`;
 }
 
@@ -130,8 +262,8 @@ function goSlide(idx) {
   document.getElementById('pb').style.width = '100%';
   document.getElementById('ctr').textContent = `${String(idx+1).padStart(2,'0')} / ${String(state.slides.length).padStart(2,'0')}`;
   const sng = state.slides[idx].song || 0;
-  if (sng !== activeSng) {
-    if (activeSng >= 0) stopAudio(activeSng);
+  if (sng !== activeSng && audioElements[sng]) {
+    if (activeSng >= 0 && audioElements[activeSng]) stopAudio(activeSng);
     playAudio(sng);
     activeSng = sng;
   }
@@ -162,7 +294,11 @@ function fadeAudio(audio, fromVol, toVol, duration, callback) {
     vol += delta;
     audio.volume = Math.max(0, Math.min(1, vol));
     step++;
-    if (step >= steps) { clearInterval(iv); audio.volume = toVol; if (callback) callback(); }
+    if (step >= steps) {
+      clearInterval(iv);
+      audio.volume = toVol;
+      if (callback) callback();
+    }
   }, stepTime);
 }
 
@@ -195,7 +331,6 @@ function replay() {
   setTimeout(() => goSlide(0), 800);
 }
 
-function setElText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
 function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function escAttr(s) { return String(s).replace(/"/g,'&quot;'); }
 
@@ -204,3 +339,5 @@ document.getElementById('replayBtn').addEventListener('click', replay);
 
 connectWebSocket();
 </script>
+</body>
+</html>
