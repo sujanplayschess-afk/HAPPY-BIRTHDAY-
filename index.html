@@ -263,7 +263,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
   <span class="i-small">A little something — made just for you</span>
   <h1 class="i-title">
     <span class="for-word">for</span>
-    Her
+    <span id="intro-name">Her</span>
   </h1>
   <div class="i-ornament">
     <div class="i-orn-l"></div>
@@ -277,7 +277,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
   <p class="i-sub">Turn the volume up &nbsp;·&nbsp; Press play</p>
   <button class="pbtn" id="playBtn">
     <span class="pbtn-icon"></span>
-    Begin
+    <span id="intro-btn">Begin</span>
   </button>
 </div>
 
@@ -319,317 +319,60 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);font-fami
   </div>
 </div>
 
-<!-- HIDDEN YT -->
-<div id="ytc" style="position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;overflow:hidden;pointer-events:none;"></div>
-
 <script>
-/* ===== SONGS ===== */
+/* ========================================
+   DATA & STATE
+   ======================================== */
+
 const DEFAULT_SONGS = [
-  { title:"Kasoor — Prateek Kuhad",      ytId:"N3vQBQ3XPCY", start:30 },
-  { title:"Baarishein — Atif Aslam",      ytId:"ixrSQoJ57WM", start:15 },
-  { title:"Tum Hi Ho — Arijit Singh",     ytId:"Umqb9KENgmk", start:10 },
-  { title:"Tera Yaar Hoon Main — Arijit", ytId:"f0Z1dOOzN5E", start:12 },
-  { title:"Khairiyat — Arijit Singh",     ytId:"dBgtCsrR4xU", start:18 }
+  { title:"Kasoor — Prateek Kuhad",      start:30, volume:0.85, fadeIn:800,  fadeOut:1200 },
+  { title:"Baarishein — Atif Aslam",      start:15, volume:0.85, fadeIn:800,  fadeOut:1200 },
+  { title:"Tum Hi Ho — Arijit Singh",     start:10, volume:0.85, fadeIn:800,  fadeOut:1200 },
+  { title:"Tera Yaar Hoon Main — Arijit", start:12, volume:0.85, fadeIn:800,  fadeOut:1200 },
+  { title:"Khairiyat — Arijit Singh",     start:18, volume:0.85, fadeIn:1000, fadeOut:1200 }
 ];
 
-/* ===== SLIDES — 36 slides ===== */
 const DEFAULT_SLIDES = [
-  /* SONG 0 — KASOOR */
-  {
-    img:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=90",
-    sovl:"linear-gradient(to bottom,rgba(8,6,16,.5) 0%,rgba(8,6,16,.0) 45%,rgba(8,6,16,.9) 100%)",
-    tint:"rgba(18,6,4,0.22)", kb:"kb-zi", pos:"pos-fc", song:0, dur:7500, chapter:"Overture",
-    lines:[
-      {text:"Some stories",cls:"d0 xs upright wide"},
-      {text:"begin",cls:"d1 hero tight"},
-      {text:"before you realise",cls:"d2 big dim tight"},
-      {text:"they already have.",cls:"d3 big tight"}
-    ]
-  },
-  {
-    img:"https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=90",
-    sovl:"linear-gradient(150deg,rgba(8,6,16,.2) 0%,rgba(8,6,16,.0) 55%,rgba(8,6,16,.92) 100%)",
-    tint:"rgba(12,4,2,0.28)", kb:"kb-pr", pos:"pos-bl", song:0, dur:8000, chapter:"",
-    lines:[
-      {text:"There was a moment —",cls:"d1 med"},
-      {text:"soft, unremarkable,",cls:"d2 med dim"},
-      {text:"when the world shifted.",cls:"d3 big gold"}
-    ]
-  },
-  {
-    img:"https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=1920&q=90",
-    sovl:"linear-gradient(to top,rgba(8,6,16,.92) 0%,rgba(8,6,16,.18) 60%,transparent 100%)",
-    tint:"rgba(22,7,3,0.25)", kb:"kb-du", pos:"pos-bc", song:0, dur:8500, chapter:"",
-    lines:[
-      {text:"She walked in",cls:"d1 big"},
-      {text:"like a song",cls:"d2 big gold"},
-      {text:"you already knew by heart.",cls:"d3 med dim"}
-    ]
-  },
-  {
-    img:"https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=1920&q=90",
-    sovl:"linear-gradient(to bottom right,rgba(8,6,16,.65) 0%,rgba(8,6,16,.0) 55%)",
-    tint:"rgba(28,8,4,0.2)", kb:"kb-zo", pos:"pos-tl", song:0, dur:8000, chapter:"",
-    lines:[
-      {text:"Kuch toh tha —",cls:"d1 big gold"},
-      {text:"jo aankhon se bola,",cls:"d2 med"},
-      {text:"jo lafzon ne nahi.",cls:"d3 med rose"}
-    ]
-  },
-  {
-    img:"https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=1920&q=90",
-    sovl:"linear-gradient(to top,rgba(8,6,16,.95) 0%,rgba(8,6,16,.25) 60%,transparent 100%)",
-    tint:"rgba(16,5,2,0.28)", kb:"kb-pl", pos:"pos-bc", song:0, dur:9000, chapter:"Kasoor",
-    lines:[
-      {text:"Kasoor tera nahi.",cls:"d1 hero tight gold"},
-      {text:"Aur mera bhi nahi.",cls:"d2 big dim"},
-      {text:"Dil ka kasoor hai.",cls:"d3 med rose"}
-    ]
-  },
-  {
-    img:"https://images.unsplash.com/photo-1531306728370-e2ebd9d7bb99?w=1920&q=90",
-    sovl:"linear-gradient(180deg,rgba(8,6,16,.6) 0%,rgba(8,6,16,.0) 38%,rgba(8,6,16,.82) 100%)",
-    tint:"rgba(8,4,18,0.26)", kb:"kb-zi", pos:"pos-mc", song:0, dur:8500, chapter:"",
-    lines:[
-      {text:"The kind of person",cls:"d1 sm wide upright"},
-      {text:"who makes quiet days",cls:"d2 big"},
-      {text:"feel worth keeping.",cls:"d3 med gold"}
-    ]
-  },
-  {
-    img:"https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=1920&q=90",
-    sovl:"linear-gradient(to top,rgba(8,6,16,.96) 0%,rgba(8,6,16,.08) 68%,transparent 100%)",
-    tint:"rgba(26,7,3,0.22)", kb:"kb-pr", pos:"pos-bc", song:0, dur:8000, chapter:"",
-    lines:[
-      {text:"You're the reason",cls:"d1 med dim"},
-      {text:"certain songs",cls:"d2 big gold"},
-      {text:"hit differently.",cls:"d3 big"}
-    ]
-  },
-
-  /* SONG 1 — BAARISHEIN */
-  {
-    img:"https://images.unsplash.com/photo-1519692933481-e162a57d6721?w=1920&q=90",
-    sovl:"linear-gradient(to bottom,rgba(8,6,16,.7) 0%,rgba(8,6,16,.05) 48%,rgba(8,6,16,.9) 100%)",
-    tint:"rgba(2,8,26,0.33)", kb:"kb-du", pos:"pos-fc", song:1, dur:7500, chapter:"Baarishein",
-    lines:[
-      {text:"Rain",cls:"d0 hero tight blue upright"},
-      {text:"always",cls:"d1 hero tight dim upright"},
-      {text:"brought her back.",cls:"d2 hero tight upright"}
-    ]
-  },
-  {
-    img:"https://images.unsplash.com/photo-1534274988757-a28bf1a57c17?w=1920&q=90",
-    sovl:"linear-gradient(150deg,rgba(8,6,16,.8) 0%,rgba(8,6,16,.0) 58%,rgba(8,6,16,.72) 100%)",
-    tint:"rgba(3,10,28,0.3)", kb:"kb-pr", pos:"pos-tl", song:1, dur:8500, chapter:"",
-    lines:[
-      {text:"Baarish jab bhi hoti hai —",cls:"d1 big blue"},
-      {text:"teri yaad bheeg jaati hai.",cls:"d2 med"},
-      {text:"Anjaane mein.",cls:"d3 sm dim"}
-    ]
-  },
-  {
-    img:"https://images.unsplash.com/photo-1473621038790-b778b4750efe?w=1920&q=90",
-    sovl:"linear-gradient(to top,rgba(8,6,16,.92) 0%,rgba(8,6,16,.12) 62%,transparent 100%)",
-    tint:"rgba(4,8,26,0.32)", kb:"kb-zo", pos:"pos-bc", song:1, dur:9000, chapter:"",
-    lines:[
-      {text:"There are feelings",cls:"d1 sm wide upright"},
-      {text:"that live in the weather.",cls:"d2 big"},
-      {text:"She is all of them.",cls:"d3 big blue"}
-    ]
-  },
-  {
-    img:"https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1920&q=90",
-    sovl:"linear-gradient(to top,rgba(8,6,16,.94) 0%,rgba(8,6,16,.18) 62%,transparent 100%)",
-    tint:"rgba(2,6,20,0.26)", kb:"kb-zi", pos:"pos-bc", song:1, dur:9000, chapter:"",
-    lines:[
-      {text:"Woh ruk jaati thi",cls:"d1 med blue"},
-      {text:"baarish mein —",cls:"d2 big"},
-      {text:"jaise waqt ko mahsoos karti ho.",cls:"d3 med dim"}
-    ]
-  },
-  {
-    img:"https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1920&q=90",
-    sovl:"linear-gradient(180deg,rgba(8,6,16,.6) 0%,rgba(8,6,16,.0) 42%,rgba(8,6,16,.88) 100%)",
-    tint:"rgba(3,8,24,0.3)", kb:"kb-du", pos:"pos-mc", song:1, dur:8500, chapter:"",
-    lines:[
-      {text:"And still —",cls:"d1 sm wide upright dim"},
-      {text:"she stayed.",cls:"d2 hero tight blue"},
-      {text:"Like rain that forgot to leave.",cls:"d3 med"}
-    ]
-  },
-
-  /* SONG 2 — TUM HI HO */
-  {
-    img:"https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1920&q=90",
-    sovl:"linear-gradient(to bottom,rgba(8,6,16,.55) 0%,rgba(8,6,16,.0) 42%,rgba(8,6,16,.92) 100%)",
-    tint:"rgba(20,5,2,0.2)", kb:"kb-zi", pos:"pos-fc", song:2, dur:7500, chapter:"Tum Hi Ho",
-    lines:[
-      {text:"Tum.",cls:"d0 hero tight gold"},
-      {text:"Sirf tum.",cls:"d2 big dim"}
-    ]
-  },
-  {
-    img:"https://images.unsplash.com/photo-1454496522488-7a8e488e8606?w=1920&q=90",
-    sovl:"linear-gradient(150deg,rgba(8,6,16,.6) 0%,rgba(8,6,16,.0) 52%,rgba(8,6,16,.88) 100%)",
-    tint:"rgba(16,4,2,0.22)", kb:"kb-pl", pos:"pos-bl", song:2, dur:8500, chapter:"",
-    lines:[
-      {text:"Har lamhe mein tum,",cls:"d1 big gold"},
-      {text:"har saans mein tum.",cls:"d2 med"},
-      {text:"Aur kya chahiye?",cls:"d3 med rose"}
-    ]
-  },
-  {
-    img:"https://images.unsplash.com/photo-1474631245212-32dc3c8310c6?w=1920&q=90",
-    sovl:"linear-gradient(to top,rgba(8,6,16,.92) 0%,rgba(8,6,16,.08) 68%,transparent 100%)",
-    tint:"rgba(18,5,3,0.26)", kb:"kb-du", pos:"pos-bc", song:2, dur:8500, chapter:"",
-    lines:[
-      {text:"She doesn't know",cls:"d1 sm wide upright dim"},
-      {text:"how rare she is.",cls:"d2 hero tight"},
-      {text:"That's what makes her rare.",cls:"d3 med gold"}
-    ]
-  },
-  {
-    img:"https://images.unsplash.com/photo-1501854140801-50d01698950b?w=1920&q=90",
-    sovl:"linear-gradient(to bottom right,rgba(8,6,16,.5) 0%,rgba(8,6,16,.0) 48%,rgba(8,6,16,.82) 100%)",
-    tint:"rgba(14,4,2,0.2)", kb:"kb-pr", pos:"pos-tr", song:2, dur:8000, chapter:"",
-    lines:[
-      {text:"Ab tere bina",cls:"d1 big"},
-      {text:"kya nahi hai —",cls:"d2 big rose"},
-      {text:"yeh dil jaanta hai.",cls:"d3 med dim"}
-    ]
-  },
-  {
-    img:"https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?w=1920&q=90",
-    sovl:"linear-gradient(to top,rgba(8,6,16,.97) 0%,rgba(8,6,16,.12) 72%,transparent 100%)",
-    tint:"rgba(16,5,2,0.24)", kb:"kb-zo", pos:"pos-bc", song:2, dur:9000, chapter:"",
-    lines:[
-      {text:"Tum hi ho.",cls:"d1 hero tight gold"},
-      {text:"Aaj bhi. Kal bhi.",cls:"d2 big dim"},
-      {text:"Hamesha.",cls:"d3 med rose"}
-    ]
-  },
-  {
-    img:"https://images.unsplash.com/photo-1431794062232-2a99a5431c6c?w=1920&q=90",
-    sovl:"linear-gradient(180deg,rgba(8,6,16,.58) 0%,rgba(8,6,16,.0) 46%,rgba(8,6,16,.9) 100%)",
-    tint:"rgba(18,5,2,0.22)", kb:"kb-pl", pos:"pos-mc", song:2, dur:8500, chapter:"",
-    lines:[
-      {text:"Some people become",cls:"d1 sm wide upright dim"},
-      {text:"the home you never knew",cls:"d2 big"},
-      {text:"you were looking for.",cls:"d3 big gold"}
-    ]
-  },
-
-  /* SONG 3 — TERA YAAR */
-  {
-    img:"https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1920&q=90",
-    sovl:"linear-gradient(to bottom,rgba(8,6,16,.55) 0%,rgba(8,6,16,.0) 42%,rgba(8,6,16,.9) 100%)",
-    tint:"rgba(22,10,0,0.2)", kb:"kb-zo", pos:"pos-fc", song:3, dur:7500, chapter:"Tera Yaar",
-    lines:[
-      {text:"Always.",cls:"d0 hero tight gold upright"},
-      {text:"That was the promise.",cls:"d2 big dim"}
-    ]
-  },
-  {
-    img:"https://images.unsplash.com/photo-1524117074681-31bd4de22ad3?w=1920&q=90",
-    sovl:"linear-gradient(150deg,rgba(8,6,16,.6) 0%,rgba(8,6,16,.0) 52%,rgba(8,6,16,.84) 100%)",
-    tint:"rgba(26,12,0,0.22)", kb:"kb-pr", pos:"pos-bl", song:3, dur:8500, chapter:"",
-    lines:[
-      {text:"Tera yaar hoon main —",cls:"d1 big gold"},
-      {text:"sada ke liye.",cls:"d2 big"},
-      {text:"Yeh waada mera.",cls:"d3 med rose"}
-    ]
-  },
-  {
-    img:"https://images.unsplash.com/photo-1504196606672-aef5c9cefc92?w=1920&q=90",
-    sovl:"linear-gradient(to top,rgba(8,6,16,.92) 0%,rgba(8,6,16,.1) 62%,transparent 100%)",
-    tint:"rgba(20,9,0,0.24)", kb:"kb-du", pos:"pos-bc", song:3, dur:9000, chapter:"",
-    lines:[
-      {text:"The laughs.",cls:"d1 big gold upright"},
-      {text:"The silences.",cls:"d2 big upright"},
-      {text:"The ordinary moments",cls:"d3 med dim"},
-      {text:"that became extraordinary.",cls:"d4 med"}
-    ]
-  },
-  {
-    img:"https://images.unsplash.com/photo-1500622944204-b135684e99fd?w=1920&q=90",
-    sovl:"linear-gradient(to top,rgba(8,6,16,.94) 0%,rgba(8,6,16,.14) 66%,transparent 100%)",
-    tint:"rgba(16,7,0,0.24)", kb:"kb-pl", pos:"pos-bc", song:3, dur:8500, chapter:"",
-    lines:[
-      {text:"Saath nibhaana —",cls:"d1 big gold"},
-      {text:"nahi tootta kabhi.",cls:"d2 big"}
-    ]
-  },
-
-  /* SONG 4 — KHAIRIYAT */
-  {
-    img:"https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=1920&q=90",
-    sovl:"linear-gradient(to bottom,rgba(8,6,16,.6) 0%,rgba(8,6,16,.0) 42%,rgba(8,6,16,.92) 100%)",
-    tint:"rgba(3,4,18,0.3)", kb:"kb-zi", pos:"pos-fc", song:4, dur:7500, chapter:"Khairiyat",
-    lines:[
-      {text:"Khairiyat.",cls:"d0 hero tight blue upright"},
-      {text:"Bas ek lafz —",cls:"d2 big dim"},
-      {text:"jisme sab kuch hai.",cls:"d3 med"}
-    ]
-  },
-  {
-    img:"https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1920&q=90",
-    sovl:"linear-gradient(150deg,rgba(8,6,16,.65) 0%,rgba(8,6,16,.0) 52%,rgba(8,6,16,.88) 100%)",
-    tint:"rgba(3,5,20,0.28)", kb:"kb-du", pos:"pos-ml", song:4, dur:8500, chapter:"",
-    lines:[
-      {text:"Distance changes nothing",cls:"d1 med dim upright"},
-      {text:"that was ever real.",cls:"d2 big"},
-      {text:"Real things don't need proximity.",cls:"d3 sm wide upright dim"}
-    ]
-  },
-  {
-    img:"https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920&q=90",
-    sovl:"linear-gradient(to top,rgba(8,6,16,.92) 0%,rgba(8,6,16,.08) 66%,transparent 100%)",
-    tint:"rgba(2,3,16,0.3)", kb:"kb-zo", pos:"pos-bc", song:4, dur:9000, chapter:"",
-    lines:[
-      {text:"And on this day —",cls:"d1 sm wide upright dim"},
-      {text:"of all days —",cls:"d2 big"},
-      {text:"I need you to know",cls:"d3 big gold"},
-      {text:"how much you matter.",cls:"d4 med rose"}
-    ]
-  },
-  {
-    img:"https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1920&q=90",
-    sovl:"linear-gradient(180deg,rgba(8,6,16,.62) 0%,rgba(8,6,16,.0) 46%,rgba(8,6,16,.9) 100%)",
-    tint:"rgba(3,4,18,0.26)", kb:"kb-pr", pos:"pos-mc", song:4, dur:8500, chapter:"",
-    lines:[
-      {text:"Every version of you —",cls:"d1 big"},
-      {text:"past, present, whatever comes next —",cls:"d2 med dim"},
-      {text:"is worth celebrating.",cls:"d3 big gold"}
-    ]
-  },
-
-  /* FINALE */
-  {
-    img:"https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=90",
-    sovl:"linear-gradient(to top,rgba(8,6,16,.98) 0%,rgba(8,6,16,.28) 55%,rgba(8,6,16,.5) 100%)",
-    tint:"rgba(3,3,14,0.32)", kb:"kb-zi", pos:"pos-fc", song:4, dur:13000, chapter:"",
-    lines:[
-      {text:"Happy",cls:"d1 hero tight gold"},
-      {text:"Birthday.",cls:"d2 hero tight"},
-      {text:"You deserve every beautiful thing.",cls:"d3 med dim loose"},
-      {text:"Every. Single. One.",cls:"d4 xs wide upright rose"}
-    ]
-  }
+  {img:"https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=1600&q=85",tint:"rgba(40,20,8,0.32)",kenBurns:"zoom-in",pos:"pos-bc",song:0,dur:9000,lines:[{text:"There are people you meet",delay:1},{text:"and the world quietly shifts.",delay:2,color:"gold"}]},
+  {img:"https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=1600&q=85",tint:"rgba(30,12,5,0.3)",kenBurns:"pan-right",pos:"pos-bl",song:0,dur:9000,lines:[{text:"She was one of them.",delay:1,size:"big",color:"gold"}]},
+  {img:"https://images.unsplash.com/photo-1531306728370-e2ebd9d7bb99?w=1600&q=85",tint:"rgba(20,10,20,0.28)",kenBurns:"zoom-out",pos:"pos-mc",song:0,dur:10000,lines:[{text:"Kuch toh tha,",delay:1,color:"gold"},{text:"jo aankhon ne bola,",delay:2},{text:"jo lafzon ne nahi.",delay:3,color:"rose"}]},
+  {img:"https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=1600&q=85",tint:"rgba(30,10,5,0.28)",kenBurns:"drift-up",pos:"pos-bc",song:0,dur:9000,lines:[{text:"Kasoor tera nahi.",delay:1,size:"big",color:"gold"},{text:"Aur mera bhi nahi.",delay:2}]},
+  {img:"https://images.unsplash.com/photo-1519692933481-e162a57d6721?w=1600&q=85",tint:"rgba(5,15,32,0.38)",kenBurns:"zoom-in",pos:"pos-bc",song:1,dur:9500,lines:[{text:"Baarish jab bhi ho —",delay:1,color:"blue"},{text:"teri yaad aati hai.",delay:2}]},
+  {img:"https://images.unsplash.com/photo-1534274988757-a28bf1a57c17?w=1600&q=85",tint:"rgba(5,18,35,0.35)",kenBurns:"drift-up",pos:"pos-ml",song:1,dur:9000,lines:[{text:"Some feelings",delay:1},{text:"don't have names.",delay:2,size:"big"},{text:"They just live.",delay:3,color:"blue"}]},
+  {img:"https://images.unsplash.com/photo-1473621038790-b778b4750efe?w=1600&q=85",tint:"rgba(8,12,30,0.38)",kenBurns:"pan-right",pos:"pos-tc",song:1,dur:9500,lines:[{text:"Jo dil mein tha —",delay:1},{text:"woh kabhi keh nahi paaye.",delay:2,color:"rose"}]},
+  {img:"https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1600&q=85",tint:"rgba(30,8,5,0.28)",kenBurns:"zoom-in",pos:"pos-mc",song:2,dur:10000,lines:[{text:"Tum hi ho.",delay:1,size:"big",color:"gold"}]},
+  {img:"https://images.unsplash.com/photo-1454496522488-7a8e488e8606?w=1600&q=85",tint:"rgba(22,8,5,0.28)",kenBurns:"pan-left",pos:"pos-bl",song:2,dur:9000,lines:[{text:"Har ek lamhe mein,",delay:1},{text:"sirf tum.",delay:2,size:"big",color:"gold"}]},
+  {img:"https://images.unsplash.com/photo-1474631245212-32dc3c8310c6?w=1600&q=85",tint:"rgba(18,6,4,0.3)",kenBurns:"drift-up",pos:"pos-tc",song:2,dur:9500,lines:[{text:"There is something rare",delay:1},{text:"about a person who makes",delay:2},{text:"the world feel like home.",delay:3,color:"gold"}]},
+  {img:"https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1600&q=85",tint:"rgba(28,15,0,0.25)",kenBurns:"zoom-out",pos:"pos-tc",song:3,dur:9000,lines:[{text:"Tera yaar hoon main.",delay:1,size:"big",color:"gold"},{text:"Sada ke liye.",delay:2}]},
+  {img:"https://images.unsplash.com/photo-1524117074681-31bd4de22ad3?w=1600&q=85",tint:"rgba(30,18,0,0.26)",kenBurns:"pan-right",pos:"pos-bl",song:3,dur:9000,lines:[{text:"The laughs that made",delay:1},{text:"everything okay.",delay:2,color:"gold"}]},
+  {img:"https://images.unsplash.com/photo-1504196606672-aef5c9cefc92?w=1600&q=85",tint:"rgba(22,12,0,0.26)",kenBurns:"pan-left",pos:"pos-mc",song:3,dur:9500,lines:[{text:"Woh waqt,",delay:1},{text:"jo kabhi lautega nahi —",delay:2},{text:"par dil mein hai.",delay:3,color:"gold"}]},
+  {img:"https://images.unsplash.com/photo-1500622944204-b135684e99fd?w=1600&q=85",tint:"rgba(5,5,22,0.33)",kenBurns:"drift-up",pos:"pos-bc",song:4,dur:9500,lines:[{text:"Khairiyat pooch,",delay:1,color:"blue"},{text:"kabhi toh khairiyat pooch.",delay:2}]},
+  {img:"https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=1600&q=85",tint:"rgba(8,5,20,0.35)",kenBurns:"zoom-in",pos:"pos-bc",song:4,dur:10000,lines:[{text:"And today —",delay:1},{text:"on your birthday,",delay:2,size:"big",color:"gold"},{text:"I just want you to feel it all.",delay:3}]},
+  {img:"https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1600&q=85",tint:"rgba(5,0,18,0.35)",kenBurns:"zoom-out",pos:"pos-mc",song:4,dur:13000,lines:[{text:"Happy Birthday.",delay:1,size:"big",color:"gold"},{text:"You deserve every beautiful thing.",delay:2},{text:"Every single one.",delay:3,color:"rose"}]}
 ];
 
 const DEFAULT_END = {
   pre:   "With love, always",
   title: "Happy Birthday.",
-  year:  "You deserve the whole world.",
+  sub:   "You deserve the whole world.",
   msg:   "Every song, every frame —\nmade only for you."
 };
 
-/* STATE */
+const DEFAULT_PAGE = {
+  eyebrow: "A little something — made just for you",
+  title:   "For Her.",
+  name:    "Her",
+  btn:     "Begin"
+};
+
 let SONGS = [...DEFAULT_SONGS];
-let SLIDES = DEFAULT_SLIDES;
+let SLIDES = [...DEFAULT_SLIDES];
+let END_CARD = {...DEFAULT_END};
+let PAGE_DATA = {...DEFAULT_PAGE};
+
 let cur = -1, stTimer = null, running = false, activeSng = -1;
-let players = {}, plReady = {}, plPending = -1;
+let audioElements = [];
+let audioReady = [];
 
 const $stage  = document.getElementById('stage');
 const $pb     = document.getElementById('pb');
@@ -641,23 +384,49 @@ const $ec     = document.getElementById('ec');
 const $loader = document.getElementById('loader');
 const $flash  = document.getElementById('flash');
 
-/* LOAD DATA */
+/* ========================================
+   LOAD DATA (localStorage + content.json)
+   ======================================== */
+
 async function loadData() {
   let data = null;
-  try { const s = localStorage.getItem('forHerAdmin'); if (s) data = JSON.parse(s); } catch {}
-  if (!data) { try { const r = await fetch('content.json?'+Date.now()); if (r.ok) data = await r.json(); } catch {} }
-  if (!data) return;
-  if (data.songs && data.songs.length) SONGS = data.songs;
-  if (data.slides && data.slides.length) SLIDES = normaliseSlides(data.slides);
-  const ec = data.endCard || {};
-  setTxt('ec-pre',  ec.pre   || DEFAULT_END.pre);
-  setTxt('ec-name', ec.title || DEFAULT_END.title);
-  setTxt('ec-year', ec.year  || ec.sub || DEFAULT_END.year);
-  setTxt('ec-msg',  ec.msg   || DEFAULT_END.msg);
+
+  // Try localStorage first
+  try {
+    const saved = localStorage.getItem('forHerAdmin');
+    if (saved) data = JSON.parse(saved);
+  } catch (e) {
+    console.warn('localStorage parse error:', e);
+  }
+
+  // Fallback to content.json
+  if (!data) {
+    try {
+      const res = await fetch('content.json?' + Date.now());
+      if (res.ok) data = await res.json();
+    } catch (e) {
+      console.warn('content.json load error:', e);
+    }
+  }
+
+  // Apply data if found
+  if (data) {
+    if (data.songs && data.songs.length) SONGS = data.songs;
+    if (data.slides && data.slides.length) SLIDES = normalizeSlides(data.slides);
+    if (data.endCard) END_CARD = {...DEFAULT_END, ...data.endCard};
+    if (data.page) PAGE_DATA = {...DEFAULT_PAGE, ...data.page};
+  }
+
+  applyPageData();
+  applyEndCard();
 }
 
-function normaliseSlides(raw) {
-  const kbMap = {'zoom-in':'kb-zi','zoom-out':'kb-zo','pan-right':'kb-pr','pan-left':'kb-pl','drift-up':'kb-du','drift-down':'kb-dr'};
+function normalizeSlides(raw) {
+  const kbMap = {
+    'zoom-in':'kb-zi', 'zoom-out':'kb-zo',
+    'pan-right':'kb-pr', 'pan-left':'kb-pl',
+    'drift-up':'kb-du', 'drift-down':'kb-dr'
+  };
   return raw.map(s => ({
     img:    s.img || s.image || '',
     sovl:   s.sovl || 'linear-gradient(to top,rgba(8,6,16,.9) 0%,rgba(8,6,16,.1) 65%,transparent 100%)',
@@ -665,18 +434,31 @@ function normaliseSlides(raw) {
     kb:     kbMap[s.kenBurns] || s.kb || 'kb-zi',
     pos:    s.pos || 'pos-bc',
     song:   typeof s.song === 'number' ? s.song : 0,
-    dur:    s.dur || (s.duration ? s.duration*1000 : 9000),
+    dur:    s.dur || (s.duration ? s.duration * 1000 : 9000),
     chapter:s.chapter || '',
-    lines:  (s.lines||[]).map(ln => {
+    lines:  (s.lines || []).map(ln => {
       if (ln.cls !== undefined) return ln;
-      const p = [];
-      if (ln.delay) p.push(`d${ln.delay}`);
-      if (ln.color) p.push(ln.color);
-      if (ln.size)  p.push(ln.size);
-      if (ln.style) p.push(ln.style);
-      return { text: ln.text||'', cls: p.join(' ') };
+      const parts = [];
+      if (ln.delay != null) parts.push(`d${ln.delay}`);
+      if (ln.color) parts.push(ln.color);
+      if (ln.size)  parts.push(ln.size);
+      if (ln.style) parts.push(ln.style);
+      return { text: ln.text || '', cls: parts.join(' ') };
     })
   }));
+}
+
+function applyPageData() {
+  setTxt('intro-name', PAGE_DATA.name || 'Her');
+  setTxt('intro-btn',  PAGE_DATA.btn  || 'Begin');
+  document.title = PAGE_DATA.tabTitle || `For ${PAGE_DATA.name || 'Her'}`;
+}
+
+function applyEndCard() {
+  setTxt('ec-pre',  END_CARD.pre   || DEFAULT_END.pre);
+  setTxt('ec-name', END_CARD.title || DEFAULT_END.title);
+  setTxt('ec-year', END_CARD.sub   || END_CARD.year || DEFAULT_END.sub);
+  setTxt('ec-msg',  END_CARD.msg   || DEFAULT_END.msg);
 }
 
 function setTxt(id, txt) {
@@ -684,7 +466,10 @@ function setTxt(id, txt) {
   if (el) el.textContent = txt;
 }
 
-/* BUILD SLIDES */
+/* ========================================
+   BUILD SLIDES
+   ======================================== */
+
 function buildSlides() {
   $stage.innerHTML = '';
   SLIDES.forEach((s, i) => {
@@ -694,109 +479,150 @@ function buildSlides() {
     const ch = s.chapter ? `<div class="chapter"><div class="chapter-line"></div>${s.chapter}<div class="chapter-line"></div></div>` : '';
     d.innerHTML = `
       <div class="sbg ${s.kb}" style="background-image:url('${cssEsc(s.img)}')"></div>
-      <div class="sovl" style="background:${cssEsc(s.sovl)}"></div>
+      <div class="sovl" style="background:${cssEsc(s.sovl || '')}"></div>
       <div class="stint" style="background:${cssEsc(s.tint)}"></div>
       <div class="sbar-t"></div><div class="sbar-b"></div>
       <div class="sbar-l"></div><div class="sbar-r"></div>
       ${ch}
       <div class="scene-n">${String(i+1).padStart(2,'0')}</div>
       <div class="lw ${s.pos}">
-        ${(s.lines||[]).map(l=>`<span class="ll ${l.cls||''}">${escHtml(l.text)}</span>`).join('')}
+        ${(s.lines || []).map(l => `<span class="ll ${l.cls || ''}">${escHtml(l.text)}</span>`).join('')}
       </div>`;
     $stage.appendChild(d);
   });
 }
 
-/* YOUTUBE */
-function loadYT() {
-  const t = document.createElement('script');
-  t.src = 'https://www.youtube.com/iframe_api';
-  document.head.appendChild(t);
-}
+/* ========================================
+   AUDIO SETUP (HTML5 Audio from base64)
+   ======================================== */
 
-window.onYouTubeIframeAPIReady = function() {
+function setupAudio() {
+  audioElements = [];
+  audioReady = [];
+
   SONGS.forEach((song, i) => {
-    const wrap = document.createElement('div');
-    wrap.id = `yt-wrap-${i}`;
-    wrap.style.cssText = 'position:fixed;top:-200px;left:-200px;width:160px;height:90px;opacity:0;pointer-events:none;';
-    document.body.appendChild(wrap);
-    players[i] = new YT.Player(`yt-wrap-${i}`, {
-      width:'160', height:'90', videoId: song.ytId,
-      playerVars:{ autoplay:1, mute:1, start:song.start||0, controls:0, disablekb:1, fs:0, modestbranding:1, rel:0, playsinline:1, enablejsapi:1 },
-      events:{
-        onReady: e => onReady(e, i),
-        onStateChange: e => onStateChange(e, i),
-        onError: e => console.warn(`YT err ${i}:`, e.data)
-      }
-    });
-  });
-};
+    const audio = new Audio();
+    
+    // Check for uploaded audio (base64) in audioData, audioUrl, or src
+    const audioSrc = song.audioData || song.audioUrl || song.src;
+    
+    if (audioSrc && audioSrc.startsWith('data:')) {
+      // Use uploaded base64 audio
+      audio.src = audioSrc;
+    } else {
+      // Fallback: no audio (silent mode)
+      audio.src = '';
+    }
 
-function onReady(event, idx) {
-  plReady[idx] = true;
-  try { event.target.pauseVideo(); event.target.setVolume(0); } catch {}
-  if (plPending === idx && running) doPlaySong(idx);
+    audio.preload = 'auto';
+    audio.volume = 0;
+    audio.loop = false; // We'll handle looping manually
+
+    audio.addEventListener('canplaythrough', () => {
+      audioReady[i] = true;
+    }, { once: true });
+
+    audio.addEventListener('ended', () => {
+      // Loop back to start position
+      audio.currentTime = song.start || 0;
+      audio.play().catch(() => {});
+    });
+
+    audioElements[i] = audio;
+    audioReady[i] = false;
+  });
 }
 
-function onStateChange(event, idx) {
-  if (event.data === YT.PlayerState.ENDED) {
-    try { event.target.seekTo(SONGS[idx].start||0,true); event.target.playVideo(); } catch {}
+function playAudio(idx) {
+  if (!audioElements[idx] || !audioElements[idx].src) return;
+  
+  const audio = audioElements[idx];
+  const song = SONGS[idx];
+  
+  audio.currentTime = song.start || 0;
+  audio.play().catch(() => {});
+  
+  // Fade in
+  fadeVolume(audio, 0, (song.volume != null ? song.volume : 0.85), song.fadeIn || 800);
+}
+
+function stopAudio(idx) {
+  if (!audioElements[idx]) return;
+  
+  const audio = audioElements[idx];
+  const song = SONGS[idx];
+  
+  // Fade out
+  fadeVolume(audio, null, 0, song.fadeOut || 1200, () => {
+    audio.pause();
+  });
+}
+
+function fadeVolume(audio, fromVol, toVol, duration, callback) {
+  let vol = fromVol != null ? fromVol : audio.volume;
+  const steps = 30;
+  const stepTime = duration / steps;
+  const delta = (toVol - vol) / steps;
+  
+  let step = 0;
+  const interval = setInterval(() => {
+    vol += delta;
+    audio.volume = Math.max(0, Math.min(1, vol));
+    step++;
+    
+    if (step >= steps) {
+      clearInterval(interval);
+      audio.volume = toVol;
+      if (callback) callback();
+    }
+  }, stepTime);
+}
+
+function switchAudio(idx) {
+  if (idx === activeSng) return;
+  
+  // Stop current
+  if (activeSng >= 0 && activeSng < audioElements.length) {
+    stopAudio(activeSng);
+  }
+  
+  activeSng = idx;
+  
+  // Play new
+  if (idx >= 0 && idx < audioElements.length) {
+    playAudio(idx);
   }
 }
 
-function doPlaySong(idx) {
-  if (!plReady[idx] || !players[idx]) return;
-  try {
-    const p = players[idx];
-    p.unMute();
-    p.seekTo(SONGS[idx].start||0, true);
-    p.playVideo();
-    smoothVol(p, 0, 80, 3000);
-  } catch(e) { console.warn('doPlaySong', e); }
-}
+/* ========================================
+   SLIDE ENGINE
+   ======================================== */
 
-function switchSong(idx) {
-  if (idx === activeSng) return;
-  activeSng = idx;
-  SONGS.forEach((_, i) => {
-    if (i !== idx && players[i] && plReady[i]) {
-      smoothVol(players[i], null, 0, 1400, () => { try { players[i].pauseVideo(); } catch {} });
-    }
-  });
-  plPending = idx;
-  if (plReady[idx]) doPlaySong(idx);
-}
-
-function smoothVol(player, from, to, ms, cb) {
-  let vol = from;
-  if (vol === null) { try { vol = player.getVolume(); } catch { vol = to > 0 ? 0 : 80; } }
-  const STEPS = 28, ivms = ms/STEPS, delta = (to-vol)/STEPS;
-  let n = 0;
-  try { player.unMute(); } catch {}
-  const iv = setInterval(() => {
-    n++; vol = Math.max(0, Math.min(100, vol+delta));
-    try { player.setVolume(Math.round(vol)); } catch {}
-    if (n >= STEPS) { clearInterval(iv); try { player.setVolume(to); } catch {}; if (cb) cb(); }
-  }, ivms);
-}
-
-/* SLIDE ENGINE */
 function goSlide(idx) {
-  if (idx >= SLIDES.length) { showEnd(); return; }
+  if (idx >= SLIDES.length) {
+    showEnd();
+    return;
+  }
+
   const prev = cur;
   cur = idx;
 
   $flash.classList.add('on');
   setTimeout(() => $flash.classList.remove('on'), 350);
 
+  // Hide previous slide
   if (prev >= 0) {
     const pe = document.getElementById(`sl-${prev}`);
     if (pe) {
-      pe.querySelectorAll('.ll').forEach(l => { l.classList.remove('in'); l.classList.add('out'); });
+      pe.querySelectorAll('.ll').forEach(l => {
+        l.classList.remove('in');
+        l.classList.add('out');
+      });
       setTimeout(() => pe.classList.remove('active'), 2200);
     }
   }
 
+  // Show current slide
   const el = document.getElementById(`sl-${idx}`);
   const ob = el.querySelector('.sbg');
   const nb = document.createElement('div');
@@ -809,6 +635,7 @@ function goSlide(idx) {
   lls.forEach(l => l.classList.remove('out'));
   requestAnimationFrame(() => requestAnimationFrame(() => lls.forEach(l => l.classList.add('in'))));
 
+  // Progress bar
   const dur = SLIDES[idx].dur;
   $pb.style.transition = 'none';
   $pb.style.width = '0%';
@@ -817,79 +644,139 @@ function goSlide(idx) {
     $pb.style.width = '100%';
   }));
 
+  // Counter
   $ctr.textContent = `${String(idx+1).padStart(2,'0')} / ${String(SLIDES.length).padStart(2,'0')}`;
 
+  // Switch audio
   const sng = SLIDES[idx].song || 0;
-  if (sng !== activeSng) switchSong(sng);
+  if (sng !== activeSng) switchAudio(sng);
 
+  // Next slide timer
   clearTimeout(stTimer);
   stTimer = setTimeout(() => goSlide(cur+1), dur);
 }
 
-/* START / END / REPLAY */
+/* ========================================
+   START / END / REPLAY
+   ======================================== */
+
 function start() {
   $intro.classList.add('gone');
-  [$pw,$ctr,$mbars].forEach(e => e.classList.add('on'));
+  [$pw, $ctr, $mbars].forEach(e => e.classList.add('on'));
   running = true;
-  if (plReady[0] && players[0]) { doPlaySong(0); activeSng = 0; plPending = 0; }
-  else { plPending = 0; activeSng = 0; }
+  
+  // Start first audio
+  if (audioElements[0] && audioElements[0].src) {
+    playAudio(0);
+    activeSng = 0;
+  }
+  
   setTimeout(() => goSlide(0), 1800);
 }
 
 function showEnd() {
   running = false;
   $pb.style.width = '100%';
-  SONGS.forEach((_,i) => {
-    if (players[i] && plReady[i]) {
-      smoothVol(players[i], null, 0, 2800, () => { try { players[i].pauseVideo(); } catch {} });
-    }
+  
+  // Fade out all audio
+  audioElements.forEach((audio, i) => {
+    if (audio && audio.src) stopAudio(i);
   });
+  
   setTimeout(() => $ec.classList.add('on'), 2400);
 }
 
 function replay() {
   $ec.classList.remove('on');
-  cur = -1; activeSng = -1; plPending = -1;
+  cur = -1;
+  activeSng = -1;
+  
   document.querySelectorAll('.slide').forEach(s => {
     s.classList.remove('active');
-    s.querySelectorAll('.ll').forEach(l => l.classList.remove('in','out'));
+    s.querySelectorAll('.ll').forEach(l => l.classList.remove('in', 'out'));
   });
+  
   running = true;
-  if (plReady[0] && players[0]) { doPlaySong(0); activeSng = 0; plPending = 0; }
-  else { plPending = 0; activeSng = 0; }
+  
+  if (audioElements[0] && audioElements[0].src) {
+    playAudio(0);
+    activeSng = 0;
+  }
+  
   setTimeout(() => goSlide(0), 900);
 }
 
-/* KEYBOARD */
+/* ========================================
+   KEYBOARD CONTROLS
+   ======================================== */
+
 document.addEventListener('keydown', e => {
   if (!running) return;
-  if (e.key==='ArrowRight'||e.key===' ') { e.preventDefault(); clearTimeout(stTimer); goSlide(cur+1); }
-  if (e.key==='ArrowLeft') { e.preventDefault(); clearTimeout(stTimer); goSlide(Math.max(0,cur-1)); }
-});
-
-/* STORAGE SYNC */
-window.addEventListener('storage', async e => {
-  if (e.key === 'forHerAdmin') {
-    await loadData(); buildSlides();
-    cur=-1; activeSng=-1; plPending=-1; running=false;
-    $ec.classList.remove('on'); $intro.classList.remove('gone');
-    [$pw,$ctr,$mbars].forEach(el => el.classList.remove('on'));
+  if (e.key === 'ArrowRight' || e.key === ' ') {
+    e.preventDefault();
+    clearTimeout(stTimer);
+    goSlide(cur + 1);
+  }
+  if (e.key === 'ArrowLeft') {
+    e.preventDefault();
+    clearTimeout(stTimer);
+    goSlide(Math.max(0, cur - 1));
   }
 });
 
-/* HELPERS */
-function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function cssEsc(s){return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
+/* ========================================
+   STORAGE SYNC (listen for admin changes)
+   ======================================== */
 
-/* INIT */
+window.addEventListener('storage', async e => {
+  if (e.key === 'forHerAdmin') {
+    await loadData();
+    buildSlides();
+    setupAudio();
+    
+    // Reset state
+    cur = -1;
+    activeSng = -1;
+    running = false;
+    $ec.classList.remove('on');
+    $intro.classList.remove('gone');
+    [$pw, $ctr, $mbars].forEach(el => el.classList.remove('on'));
+  }
+});
+
+/* ========================================
+   HELPERS
+   ======================================== */
+
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function cssEsc(s) {
+  return String(s)
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'");
+}
+
+/* ========================================
+   INIT
+   ======================================== */
+
 async function init() {
   await loadData();
   buildSlides();
-  loadYT();
+  setupAudio();
+  
   $loader.classList.add('gone');
+  
   document.getElementById('playBtn').addEventListener('click', start);
   document.getElementById('replayBtn').addEventListener('click', replay);
 }
+
 init();
 </script>
 </body>
