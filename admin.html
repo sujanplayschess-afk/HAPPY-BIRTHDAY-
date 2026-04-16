@@ -126,6 +126,13 @@ main{max-width:1180px;margin:0 auto;padding:36px 28px;}
 .audio-upload-label:hover{background:rgba(232,169,106,.12);color:var(--gold);}
 .file-input{display:none;}
 
+/* No-audio placeholder */
+.audio-empty{display:flex;align-items:center;gap:12px;background:var(--surface2);
+  border:1px dashed rgba(232,169,106,.18);border-radius:2px;padding:12px 14px;margin-top:8px;}
+.audio-empty-icon{font-size:18px;opacity:.35;flex-shrink:0;}
+.audio-empty-text{font-size:11px;color:var(--dim2);line-height:1.5;}
+.audio-empty-text strong{color:rgba(232,169,106,.5);font-weight:400;}
+
 .endcard-wrap{background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:28px;}
 .preview-card{background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:28px;
   text-align:center;margin-bottom:28px;}
@@ -423,7 +430,7 @@ hr{height:1px;background:var(--border);border:none;margin:24px 0;}
       <div class="export-title">Export content.json</div>
       <p class="export-desc">
         Copy or download this JSON and save as <code>content.json</code> in the same folder as <code>index.html</code>.
-        The main site loads it automatically on startup. <strong>Note:</strong> uploaded audio is stored as base64 — the file will be large if you have many songs.
+        The main site loads it automatically on startup. <strong>Note:</strong> uploaded audio is stored as base64 inside <code>audioData</code> — the main site reads this field directly. Keep files under 8MB each.
       </p>
       <div class="json-preview" id="json-preview"></div>
       <div class="export-actions">
@@ -711,7 +718,8 @@ function renderSongs() {
   const list = document.getElementById('songs-list');
   list.innerHTML = '';
   (data.songs||[]).forEach((s, i) => {
-    const hasAudio = !!(s.audioData || s.audioUrl);
+    /* FIX: check all possible audio fields */
+    const hasAudio = !!(s.audioData || s.audioUrl || s.src);
     const card = document.createElement('div');
     card.className = 'song-card';
     card.innerHTML = `
@@ -732,17 +740,17 @@ function renderSongs() {
           <label>Audio File — Upload from device</label>
           <div class="audio-upload-row">
             <input type="text" id="audio-name-${i}" readonly
-              value="${escAttr(s.fileName||'')}"
+              value="${escAttr(s.fileName || (s.audioUrl ? s.audioUrl : '') || '')}"
               placeholder="No file selected — click Upload to choose an audio file"/>
             <label class="audio-upload-label" for="audio-file-${i}">
-              ♪ Upload Audio
+              ♪ ${hasAudio ? 'Replace Audio' : 'Upload Audio'}
             </label>
             <input class="file-input" type="file" id="audio-file-${i}"
               accept="audio/*,.mp3,.wav,.ogg,.aac,.flac,.m4a"
               onchange="handleAudioUpload(${i},this)"/>
           </div>
           <div id="audio-player-wrap-${i}">
-            ${hasAudio ? renderAudioPlayer(i, s) : `<div style="margin-top:8px;" class="hint">No audio uploaded yet. Upload an MP3, WAV, OGG, or other audio file.</div>`}
+            ${hasAudio ? renderAudioPlayer(i, s) : renderAudioEmpty(i)}
           </div>
         </div>
 
@@ -774,17 +782,38 @@ function renderSongs() {
   });
 }
 
+function renderAudioEmpty(i) {
+  return `<div class="audio-empty">
+    <span class="audio-empty-icon">♪</span>
+    <div class="audio-empty-text">
+      <strong>No audio uploaded yet.</strong><br>
+      Click <strong>Upload Audio</strong> above to choose an MP3, WAV, OGG, or M4A file from your device.
+    </div>
+  </div>`;
+}
+
 function renderAudioPlayer(i, s) {
-  const src = s.audioData || s.audioUrl || '';
-  const type = s.audioType || 'audio/mpeg';
+  /* FIX: support audioData (base64), audioUrl, or legacy src field */
+  const src = s.audioData || s.audioUrl || s.src || '';
+  const type = s.audioType || guessAudioType(s.fileName || s.audioUrl || '');
+  const label = s.fileName || (s.audioUrl ? s.audioUrl.split('/').pop() : '') || 'Uploaded';
   return `
     <div class="audio-player-mini">
-      <audio controls preload="metadata">
+      <audio controls preload="metadata" style="flex:1;height:28px;filter:invert(0.8) sepia(1) saturate(0.4) hue-rotate(340deg)">
         <source src="${escAttr(src)}" type="${escAttr(type)}">
+        Your browser does not support audio.
       </audio>
-      <span class="audio-badge">${escHtml(s.fileName||'Uploaded')}</span>
-      <button class="btn btn-danger" style="padding:5px 10px;font-size:9px" onclick="clearAudio(${i})">✕ Remove</button>
+      <span class="audio-badge">${escHtml(truncate(label, 28))}</span>
+      <button class="btn btn-danger" style="padding:5px 10px;font-size:9px" onclick="clearAudio(${i})">✕</button>
     </div>`;
+}
+
+/* FIX: guess MIME type from file extension */
+function guessAudioType(filename) {
+  const ext = (filename || '').split('.').pop().toLowerCase();
+  const map = { mp3:'audio/mpeg', wav:'audio/wav', ogg:'audio/ogg', aac:'audio/aac',
+                flac:'audio/flac', m4a:'audio/mp4', opus:'audio/opus' };
+  return map[ext] || 'audio/mpeg';
 }
 
 function handleAudioUpload(songIdx, input) {
@@ -800,12 +829,17 @@ function handleAudioUpload(songIdx, input) {
   toast('Reading audio file…');
   const reader = new FileReader();
   reader.onload = e => {
-    data.songs[songIdx].audioData = e.target.result;
-    data.songs[songIdx].audioType = file.type || 'audio/mpeg';
+    const dataUrl = e.target.result;
+    /* FIX: store as audioData (base64 data URL) AND set audioUrl to same
+       so both old index.html (reads audioUrl) and new (reads audioData) work */
+    data.songs[songIdx].audioData = dataUrl;
+    data.songs[songIdx].audioUrl  = dataUrl;   // ← KEY FIX: main site reads audioUrl
+    data.songs[songIdx].src       = dataUrl;   // ← fallback alias
+    data.songs[songIdx].audioType = file.type || guessAudioType(file.name);
     data.songs[songIdx].fileName  = file.name;
-    // If title is still default, auto-fill from filename
-    const defaultTitle = `Song — Artist`;
-    if (!data.songs[songIdx].title || data.songs[songIdx].title === defaultTitle) {
+
+    /* Auto-fill title from filename if still default */
+    if (!data.songs[songIdx].title || data.songs[songIdx].title === 'New Song — Artist') {
       const nameNoExt = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
       data.songs[songIdx].title = nameNoExt;
     }
@@ -813,7 +847,7 @@ function handleAudioUpload(songIdx, input) {
     renderSongs();
     toast(`Uploaded: ${file.name} ✓`);
   };
-  reader.onerror = () => toast('Error reading file');
+  reader.onerror = () => toast('Error reading file — try a smaller file');
   reader.readAsDataURL(file);
 }
 
@@ -821,6 +855,7 @@ function clearAudio(songIdx) {
   if (!confirm('Remove audio from this song?')) return;
   delete data.songs[songIdx].audioData;
   delete data.songs[songIdx].audioUrl;
+  delete data.songs[songIdx].src;
   delete data.songs[songIdx].audioType;
   delete data.songs[songIdx].fileName;
   save(); renderSongs(); toast('Audio removed');
@@ -933,11 +968,16 @@ function syncColorFromText(key, val) {
 function getJSON() { return JSON.stringify(data, null, 2); }
 
 function renderJSONPreview() {
-  // Show truncated preview (base64 audio can be huge)
   const clone = JSON.parse(JSON.stringify(data));
   (clone.songs||[]).forEach(s => {
     if (s.audioData && s.audioData.length > 200) {
       s.audioData = s.audioData.substring(0, 60) + `…[base64 ${Math.round(s.audioData.length/1024)}KB]`;
+    }
+    if (s.audioUrl && s.audioUrl.startsWith('data:') && s.audioUrl.length > 200) {
+      s.audioUrl = s.audioUrl.substring(0, 60) + `…[base64 ${Math.round(s.audioUrl.length/1024)}KB]`;
+    }
+    if (s.src && s.src.startsWith('data:') && s.src.length > 200) {
+      s.src = s.src.substring(0, 60) + `…[base64]`;
     }
   });
   document.getElementById('json-preview').textContent = JSON.stringify(clone, null, 2);
@@ -1002,7 +1042,7 @@ function setValue(id, val) { const el = document.getElementById(id); if (el) el.
 function setElText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
 
 /* ============================================
-   DEFAULTS (no audio — users upload their own)
+   DEFAULTS
    ============================================ */
 function getDefaultData() {
   return {
