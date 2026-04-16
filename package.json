@@ -1,7 +1,7 @@
 {
   "name": "for-her-gift",
   "version": "1.0.0",
-  "description": "Birthday gift slideshow",
+  "description": "Birthday gift slideshow with real-time updates",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
