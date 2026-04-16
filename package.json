@@ -1,7 +1,7 @@
 {
-  "name": "for-her",
+  "name": "for-her-gift",
   "version": "1.0.0",
-  "description": "Birthday gift video slideshow",
+  "description": "Birthday gift slideshow",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -11,5 +11,8 @@
     "express": "^4.18.2",
     "ws": "^8.14.0",
     "uuid": "^9.0.0"
+  },
+  "engines": {
+    "node": "18.x"
   }
 }
