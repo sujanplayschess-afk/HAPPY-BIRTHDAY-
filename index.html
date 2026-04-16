@@ -1,18 +1,206 @@
-{
-  "name": "for-her-gift",
-  "version": "1.0.0",
-  "description": "Birthday gift slideshow",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
-  },
-  "dependencies": {
-    "express": "^4.18.2",
-    "ws": "^8.14.0",
-    "uuid": "^9.0.0"
-  },
-  "engines": {
-    "node": "18.x"
-  }
+<script>
+const WS_URL = `ws://${window.location.host}`;
+let ws = null;
+let state = { slides:[], songs:[], endCard:{}, page:{} };
+let cur = -1, running = false, activeSng = -1;
+let audioElements = [];
+
+function connectWebSocket() {
+  ws = new WebSocket(WS_URL);
+
+  ws.onopen = () => {
+    console.log('✓ Connected');
+    document.getElementById('syncStatus').classList.add('on');
+  };
+
+  ws.onmessage = (event) => {
+    const msg = JSON.parse(event.data);
+
+    if (msg.type === 'INIT') {
+      state = msg.state;
+      buildSlides();
+      setupAudio();
+      renderEndCard();
+      applyPageData();
+      document.getElementById('loader').classList.add('gone');
+      console.log('✓ Loaded gift');
+    }
+
+    // 🔴 WHEN YOU UPDATE IN ADMIN
+    if (msg.type === 'CONTENT_UPDATED') {
+      state = msg.state;
+      buildSlides();
+      setupAudio();
+      renderEndCard();
+      applyPageData();
+      console.log('📤 Gift updated!');
+    }
+  };
+
+  ws.onerror = () => {
+    console.error('Connection lost');
+    document.getElementById('syncStatus').classList.remove('on');
+  };
+
+  ws.onclose = () => {
+    document.getElementById('syncStatus').classList.remove('on');
+    setTimeout(connectWebSocket, 3000);
+  };
 }
+
+function buildSlides() {
+  const stage = document.getElementById('stage');
+  stage.innerHTML = '';
+  state.slides.forEach((s, i) => {
+    const d = document.createElement('div');
+    d.className = 'slide';
+    d.id = `sl-${i}`;
+    const linesHTML = (s.lines||[]).map(l => {
+      const cls = ['ll', l.cls || `d${l.delay||1}`, l.color, l.size].filter(Boolean).join(' ');
+      return `<span class="${cls}">${escHtml(l.text)}</span>`;
+    }).join('');
+    d.innerHTML = `
+      <div class="sbg ${s.kb||'kb-zi'}" style="background-image:url('${escAttr(s.img)}')"></div>
+      <div class="sovl"></div>
+      <div class="stint" style="background:${escAttr(s.tint||'rgba(0,0,0,0.26)')}"></div>
+      <div class="sbar-t"></div><div class="sbar-b"></div>
+      <div class="sbar-l"></div><div class="sbar-r"></div>
+      <div class="scene-n">${String(i+1).padStart(2,'0')}</div>
+      <div class="lw ${s.pos||'pos-bc'}">${linesHTML}</div>`;
+    stage.appendChild(d);
+  });
+}
+
+function setupAudio() {
+  audioElements = [];
+  state.songs.forEach((song, i) => {
+    const audio = new Audio();
+    const src = song.audioData || song.audioUrl;
+    if (src) audio.src = src;
+    audio.preload = 'auto';
+    audio.volume = 0;
+    audio.addEventListener('ended', () => {
+      audio.currentTime = song.start || 0;
+      if (running) audio.play().catch(() => {});
+    });
+    audioElements[i] = audio;
+  });
+}
+
+function renderEndCard() {
+  const ec = state.endCard || {};
+  setElText('ec-pre', ec.pre || 'With love');
+  setElText('ec-name', ec.title || 'Happy Birthday');
+  setElText('ec-year', ec.sub || 'You rock');
+  setElText('ec-msg', (ec.msg || '').replace(/\\n/g, '<br>'));
+}
+
+function applyPageData() {
+  const pg = state.page || {};
+  setElText('intro-name', pg.name || 'You');
+  setElText('intro-btn', pg.btn || 'Begin');
+  document.title = `For ${pg.name || 'You'}`;
+}
+
+function goSlide(idx) {
+  if (idx >= state.slides.length) return showEnd();
+  const prev = cur;
+  cur = idx;
+  if (prev >= 0) {
+    const pe = document.getElementById(`sl-${prev}`);
+    if (pe) {
+      pe.querySelectorAll('.ll').forEach(l => l.classList.remove('in'));
+      setTimeout(() => pe.classList.remove('active'), 2200);
+    }
+  }
+  const el = document.getElementById(`sl-${idx}`);
+  if (!el) return;
+  const ob = el.querySelector('.sbg');
+  if (ob) {
+    const nb = document.createElement('div');
+    nb.className = ob.className;
+    nb.style.cssText = ob.style.cssText;
+    ob.parentNode.replaceChild(nb, ob);
+  }
+  el.classList.add('active');
+  const lls = el.querySelectorAll('.ll');
+  requestAnimationFrame(() => requestAnimationFrame(() => lls.forEach(l => l.classList.add('in'))));
+  const dur = state.slides[idx].dur || 9000;
+  document.getElementById('pb').style.transition = `width ${dur/1000}s linear`;
+  document.getElementById('pb').style.width = '100%';
+  document.getElementById('ctr').textContent = `${String(idx+1).padStart(2,'0')} / ${String(state.slides.length).padStart(2,'0')}`;
+  const sng = state.slides[idx].song || 0;
+  if (sng !== activeSng) {
+    if (activeSng >= 0) stopAudio(activeSng);
+    playAudio(sng);
+    activeSng = sng;
+  }
+  setTimeout(() => running && goSlide(cur+1), dur);
+}
+
+function playAudio(idx) {
+  if (!audioElements[idx]?.src) return;
+  const audio = audioElements[idx];
+  const song = state.songs[idx];
+  audio.currentTime = song.start || 0;
+  audio.play().catch(() => {});
+  fadeAudio(audio, 0, song.volume || 0.85, 800);
+}
+
+function stopAudio(idx) {
+  if (!audioElements[idx]) return;
+  fadeAudio(audioElements[idx], null, 0, 1200, () => audioElements[idx].pause());
+}
+
+function fadeAudio(audio, fromVol, toVol, duration, callback) {
+  let vol = fromVol != null ? fromVol : audio.volume;
+  const steps = 30;
+  const stepTime = duration / steps;
+  const delta = (toVol - vol) / steps;
+  let step = 0;
+  const iv = setInterval(() => {
+    vol += delta;
+    audio.volume = Math.max(0, Math.min(1, vol));
+    step++;
+    if (step >= steps) { clearInterval(iv); audio.volume = toVol; if (callback) callback(); }
+  }, stepTime);
+}
+
+function showEnd() {
+  running = false;
+  document.getElementById('pb').style.width = '100%';
+  audioElements.forEach(a => { if (a.src) fadeAudio(a, null, 0, 500, () => a.pause()); });
+  setTimeout(() => document.getElementById('ec').classList.add('on'), 2000);
+}
+
+function start() {
+  document.getElementById('intro').classList.add('gone');
+  document.getElementById('pw').classList.add('on');
+  document.getElementById('ctr').classList.add('on');
+  document.getElementById('mbars').classList.add('on');
+  running = true;
+  if (audioElements[0]?.src) { playAudio(0); activeSng = 0; }
+  goSlide(0);
+}
+
+function replay() {
+  document.getElementById('ec').classList.remove('on');
+  cur = -1; activeSng = -1;
+  document.querySelectorAll('.slide').forEach(s => {
+    s.classList.remove('active');
+    s.querySelectorAll('.ll').forEach(l => l.classList.remove('in'));
+  });
+  running = true;
+  if (audioElements[0]?.src) { playAudio(0); activeSng = 0; }
+  setTimeout(() => goSlide(0), 800);
+}
+
+function setElText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escAttr(s) { return String(s).replace(/"/g,'&quot;'); }
+
+document.getElementById('playBtn').addEventListener('click', start);
+document.getElementById('replayBtn').addEventListener('click', replay);
+
+connectWebSocket();
+</script>
