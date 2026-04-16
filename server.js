@@ -24,6 +24,8 @@ wss.on('connection', (ws) => {
   const viewerId = uuid();
   viewers.set(viewerId, { id: viewerId, ws });
 
+  console.log(`Viewer connected: ${viewerId.substring(0, 8)} (Total: ${viewers.size})`);
+
   ws.send(JSON.stringify({
     type: 'INIT',
     state: appState,
@@ -33,6 +35,7 @@ wss.on('connection', (ws) => {
 
   ws.on('close', () => {
     viewers.delete(viewerId);
+    console.log(`Viewer disconnected (Total: ${viewers.size})`);
   });
 
   ws.on('error', (err) => {
@@ -42,11 +45,18 @@ wss.on('connection', (ws) => {
 
 function broadcast(message) {
   const data = JSON.stringify(message);
+  let count = 0;
   viewers.forEach((viewer) => {
     if (viewer.ws.readyState === WebSocket.OPEN) {
-      viewer.ws.send(data);
+      try {
+        viewer.ws.send(data);
+        count++;
+      } catch (e) {
+        console.error('Broadcast error:', e);
+      }
     }
   });
+  return count;
 }
 
 app.get('/api/state', (req, res) => {
@@ -55,19 +65,32 @@ app.get('/api/state', (req, res) => {
 
 app.post('/api/state', (req, res) => {
   appState = req.body;
-  broadcast({
+  const count = broadcast({
     type: 'CONTENT_UPDATED',
     state: appState,
     timestamp: Date.now()
   });
-  res.json({ ok: true, viewers: viewers.size });
+  res.json({ ok: true, viewers: count });
+  console.log(`State updated, broadcast to ${count} viewers`);
 });
 
 app.get('/api/viewers', (req, res) => {
   res.json({ count: viewers.size });
 });
 
+app.get('/health', (req, res) => {
+  res.json({ ok: true, viewers: viewers.size });
+});
+
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`
+╔════════════════════════════════════╗
+║  🎁 FOR HER — GIFT SERVER         ║
+╠════════════════════════════════════╣
+║  Server running on port ${PORT}         ║
+║  Admin: /admin.html                ║
+║  Viewer: /                         ║
+╚════════════════════════════════════╝
+  `);
 });
